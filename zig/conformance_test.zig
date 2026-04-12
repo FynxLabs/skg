@@ -116,7 +116,7 @@ fn compareValue(expected_obj: std.json.ObjectMap, actual: ast.Value) !void {
         const expected_data = expectJsonBool(expected_obj.get("data") orelse return error.MissingData) orelse return error.BadData;
         try testing.expectEqual(expected_data, actual.bool);
     } else if (std.mem.eql(u8, type_str, "null")) {
-        try testing.expectEqual(ast.ValueType.@"null", std.meta.activeTag(actual));
+        try testing.expectEqual(ast.ValueType.null, std.meta.activeTag(actual));
     } else if (std.mem.eql(u8, type_str, "array")) {
         try testing.expectEqual(ast.ValueType.array, std.meta.activeTag(actual));
         const expected_items = expectJsonArray(expected_obj.get("data") orelse return error.MissingData) orelse return error.BadData;

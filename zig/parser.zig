@@ -336,7 +336,7 @@ const Parser = struct {
             } },
             .bool_true => ast.Value{ .bool = true },
             .bool_false => ast.Value{ .bool = false },
-            .null_lit => ast.Value{ .@"null" = {} },
+            .null_lit => ast.Value{ .null = {} },
             .string => ast.Value{ .string = try self.unescapeString(t.text) },
             .lbracket => try self.parseArray(),
             else => {

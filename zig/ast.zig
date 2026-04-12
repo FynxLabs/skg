@@ -3,7 +3,7 @@
 /// All string slices in the AST are allocated from the arena passed to the parser.
 /// Free everything by deiniting that arena - do not free individual slices.
 /// The type tag of a Value.
-pub const ValueType = enum { int, float, bool, string, array, @"null" };
+pub const ValueType = enum { int, float, bool, string, array, null };
 
 /// Structured error context for parse failures.
 pub const Diagnostic = struct {
@@ -27,7 +27,7 @@ pub const Value = union(ValueType) {
     /// Unescaped string content, no surrounding quotes. Allocated from parse arena.
     string: []const u8,
     array: Array,
-    @"null": void,
+    null: void,
 };
 
 /// A key-value pair: `key: value`

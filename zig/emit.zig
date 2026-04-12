@@ -100,7 +100,7 @@ fn emitValue(w: anytype, value: ast.Value, depth: usize) !void {
                 try w.writeByte('"');
             }
         },
-        .@"null" => try w.writeAll("null"),
+        .null => try w.writeAll("null"),
         .array => |arr| {
             try w.writeByte('[');
             for (arr.items, 0..) |item, i| {
