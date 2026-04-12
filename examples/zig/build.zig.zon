@@ -1,0 +1,15 @@
+.{
+    .name = .skg_example,
+    .version = "0.0.0",
+    .fingerprint = 0x62c4337fc4dbeca5,
+    .dependencies = .{
+        .skg = .{
+            .path = "../..",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "main.zig",
+    },
+}

@@ -1,0 +1,60 @@
+# app.skg — example application config
+#
+# SKG is typed, hierarchical, and comment-friendly.
+# Your Go/Zig structs ARE the schema — if the struct has the field,
+# it gets populated. Extra fields in the config are silently ignored.
+# Missing fields keep their zero value.
+
+skg_version: "1.0"
+schema_version: "0.1.0"
+
+# Top-level fields map to struct fields via tags
+name: "my-service"
+port: 8080
+debug: false
+allowed_hosts: ["localhost", "127.0.0.1", "::1"]
+
+# Blocks map to nested structs
+database {
+  host: "localhost"
+  port: 5432
+  name: "appdb"
+  max_connections: 25
+  ssl: true
+}
+
+logging {
+  level: "info"
+  max_size_mb: 10
+  keep_rotations: 5
+
+  # Nested blocks work too — no depth limit
+  streams {
+    stdout: true
+    file: true
+    syslog: false
+  }
+}
+
+# Null explicitly unsets an inherited value from an import
+cache_ttl: null
+
+# Blocks with dynamic keys map to map[string]T in Go.
+# Block names become map keys, children become the value.
+packages {
+  base: ["coreutils", "systemd", "networkmanager"]
+  audio: ["pipewire", "wireplumber"]
+  dev: ["git", "gcc", "make"]
+}
+
+# map[string]interface{} — the "extra bag" pattern for arbitrary key-value pairs
+extra {
+  retries: 3
+  region: "us-west-2"
+  verbose: true
+}
+
+# Multiline strings preserve newlines exactly
+motd: """Welcome to my-service.
+No warranty expressed or implied.
+You get what you get."""
