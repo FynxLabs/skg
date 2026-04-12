@@ -20,11 +20,12 @@ type expectedFile struct {
 }
 
 type expectedNode struct {
-	Type     string         `json:"type"`     // "field" or "block"
-	Key      string         `json:"key"`      // field key
-	Name     string         `json:"name"`     // block name
-	Value    *expectedValue `json:"value"`    // field value
-	Children []expectedNode `json:"children"` // block children
+	Type     string           `json:"type"`     // "field", "block", or "block_array"
+	Key      string           `json:"key"`      // field key
+	Name     string           `json:"name"`     // block/block_array name
+	Value    *expectedValue   `json:"value"`    // field value
+	Children []expectedNode   `json:"children"` // block children
+	Items    [][]expectedNode `json:"items"`    // block_array items
 }
 
 type expectedValue struct {
@@ -186,13 +187,30 @@ func compareNodes(t *testing.T, path string, expected []expectedNode, actual []N
 
 		case "block":
 			if an.Block == nil {
-				t.Errorf("%sexpected block, got field", prefix)
+				t.Errorf("%sexpected block, got non-block", prefix)
 				continue
 			}
 			if an.Block.Name != en.Name {
 				t.Errorf("%sname: expected %q, got %q", prefix, en.Name, an.Block.Name)
 			}
 			compareNodes(t, prefix, en.Children, an.Block.Children)
+
+		case "block_array":
+			if an.BlockArray == nil {
+				t.Errorf("%sexpected block_array, got non-block_array", prefix)
+				continue
+			}
+			if an.BlockArray.Name != en.Name {
+				t.Errorf("%sname: expected %q, got %q", prefix, en.Name, an.BlockArray.Name)
+			}
+			if len(en.Items) != len(an.BlockArray.Items) {
+				t.Errorf("%sitems count: expected %d, got %d", prefix, len(en.Items), len(an.BlockArray.Items))
+				continue
+			}
+			for j, item := range en.Items {
+				itemPrefix := fmt.Sprintf("%sitems[%d].", prefix, j)
+				compareNodes(t, itemPrefix, item, an.BlockArray.Items[j])
+			}
 		}
 	}
 }

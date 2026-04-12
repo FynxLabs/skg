@@ -31,8 +31,15 @@ func decodeNodes(nodes []Node, target reflect.Value) error {
 		}
 		target = target.Elem()
 	}
+
+	// Map target: block children become map entries.
+	// Field keys/block names are map keys, values decode into the map value type.
+	if target.Kind() == reflect.Map {
+		return decodeMap(nodes, target)
+	}
+
 	if target.Kind() != reflect.Struct {
-		return fmt.Errorf("skg: unmarshal target must be a struct, got %s", target.Kind())
+		return fmt.Errorf("skg: unmarshal target must be a struct or map, got %s", target.Kind())
 	}
 
 	fieldMap := buildFieldMap(target.Type())
@@ -53,11 +60,96 @@ func decodeNodes(nodes []Node, target reflect.Value) error {
 				continue
 			}
 			fv := target.Field(idx)
-			if err := decodeNodes(node.Block.Children, fv.Addr()); err != nil {
-				return fmt.Errorf("skg: block %q: %w", node.Block.Name, err)
+			// Handle pointer-to-struct fields: allocate if nil, then decode into the pointee.
+			if fv.Kind() == reflect.Ptr {
+				if fv.IsNil() {
+					fv.Set(reflect.New(fv.Type().Elem()))
+				}
+				if err := decodeNodes(node.Block.Children, fv); err != nil {
+					return fmt.Errorf("skg: block %q: %w", node.Block.Name, err)
+				}
+			} else {
+				if err := decodeNodes(node.Block.Children, fv.Addr()); err != nil {
+					return fmt.Errorf("skg: block %q: %w", node.Block.Name, err)
+				}
+			}
+		} else if node.BlockArray != nil {
+			idx, ok := fieldMap[node.BlockArray.Name]
+			if !ok {
+				continue
+			}
+			fv := target.Field(idx)
+			if err := decodeBlockArray(node.BlockArray, fv); err != nil {
+				return fmt.Errorf("skg: block array %q: %w", node.BlockArray.Name, err)
 			}
 		}
 	}
+	return nil
+}
+
+func decodeMap(nodes []Node, target reflect.Value) error {
+	if target.Type().Key().Kind() != reflect.String {
+		return fmt.Errorf("skg: map key must be string, got %s", target.Type().Key().Kind())
+	}
+
+	if target.IsNil() {
+		target.Set(reflect.MakeMap(target.Type()))
+	}
+
+	valType := target.Type().Elem()
+	isAny := valType.Kind() == reflect.Interface
+
+	for _, node := range nodes {
+		if node.Field != nil {
+			if isAny {
+				target.SetMapIndex(reflect.ValueOf(node.Field.Key), reflect.ValueOf(valueToAny(node.Field.Value)))
+			} else {
+				val := reflect.New(valType).Elem()
+				if err := decodeValue(node.Field.Value, val); err != nil {
+					return fmt.Errorf("skg: map key %q: %w", node.Field.Key, err)
+				}
+				target.SetMapIndex(reflect.ValueOf(node.Field.Key), val)
+			}
+		} else if node.Block != nil {
+			if isAny {
+				// Decode block children into map[string]interface{}
+				inner := reflect.MakeMap(reflect.TypeOf(map[string]interface{}{}))
+				if err := decodeMap(node.Block.Children, inner); err != nil {
+					return fmt.Errorf("skg: map key %q: %w", node.Block.Name, err)
+				}
+				target.SetMapIndex(reflect.ValueOf(node.Block.Name), inner)
+			} else {
+				val := reflect.New(valType).Elem()
+				if err := decodeNodes(node.Block.Children, val.Addr()); err != nil {
+					return fmt.Errorf("skg: map key %q: %w", node.Block.Name, err)
+				}
+				target.SetMapIndex(reflect.ValueOf(node.Block.Name), val)
+			}
+		}
+	}
+	return nil
+}
+
+func decodeBlockArray(ba *BlockArray, target reflect.Value) error {
+	if target.Kind() == reflect.Ptr {
+		if target.IsNil() {
+			target.Set(reflect.New(target.Type().Elem()))
+		}
+		target = target.Elem()
+	}
+	if target.Kind() != reflect.Slice {
+		return fmt.Errorf("target must be a slice, got %s", target.Kind())
+	}
+	elemType := target.Type().Elem()
+	slice := reflect.MakeSlice(target.Type(), len(ba.Items), len(ba.Items))
+	for i, item := range ba.Items {
+		elem := reflect.New(elemType)
+		if err := decodeNodes(item, elem); err != nil {
+			return fmt.Errorf("index %d: %w", i, err)
+		}
+		slice.Index(i).Set(elem.Elem())
+	}
+	target.Set(slice)
 	return nil
 }
 
@@ -72,6 +164,12 @@ func decodeValue(val Value, target reflect.Value) error {
 			target.Set(reflect.New(target.Type().Elem()))
 		}
 		target = target.Elem()
+	}
+
+	// Handle interface{} / any — decode into native Go types
+	if target.Kind() == reflect.Interface {
+		target.Set(reflect.ValueOf(valueToAny(val)))
+		return nil
 	}
 
 	switch val.Type {
@@ -122,6 +220,32 @@ func decodeValue(val Value, target reflect.Value) error {
 			}
 		}
 		target.Set(slice)
+	}
+	return nil
+}
+
+// valueToAny converts an SKG Value into a native Go type for interface{} targets.
+func valueToAny(val Value) interface{} {
+	switch val.Type {
+	case TypeString:
+		return val.Str
+	case TypeInt:
+		return val.Int
+	case TypeFloat:
+		return val.Float
+	case TypeBool:
+		return val.Bool
+	case TypeNull:
+		return nil
+	case TypeArray:
+		if val.Array == nil {
+			return []interface{}{}
+		}
+		items := make([]interface{}, len(val.Array.Items))
+		for i, item := range val.Array.Items {
+			items[i] = valueToAny(item)
+		}
+		return items
 	}
 	return nil
 }

@@ -253,8 +253,114 @@ func (p *parser) parseNode() (Node, error) {
 		children = dedup(children)
 		return Node{Block: &Block{Name: nameTok.text, Children: children, Line: nameTok.line, Col: nameTok.col}}, nil
 	}
+	if nt.tag == tokLBracket {
+		if _, err := p.consume(); err != nil {
+			return Node{}, err
+		}
+		return p.parseBlockArray(nameTok)
+	}
 
-	return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: nt.line, Col: nt.col, Message: "expected ':' or '{' after identifier"}}
+	return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: nt.line, Col: nt.col, Message: "expected ':', '{', or '[' after identifier"}}
+}
+
+func (p *parser) parseBlockArray(nameTok token) (Node, error) {
+	// '[' already consumed. Expect a sequence of { children } blocks until ']'.
+	// Commas between entries are optional.
+	var items [][]Node
+
+	for {
+		t, err := p.peek()
+		if err != nil {
+			return Node{}, err
+		}
+		if t.tag == tokRBracket {
+			p.consume()
+			break
+		}
+		if t.tag == tokComma {
+			p.consume()
+			continue
+		}
+		if t.tag == tokEOF {
+			return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: t.line, Col: t.col, Message: "unterminated block array, expected ']'"}}
+		}
+		if t.tag != tokLBrace {
+			// Not a block array — this is a regular field with array value.
+			// Re-parse as: name: [items...]
+			// We've already consumed '[', so parse the remaining array elements.
+			return p.reParseAsFieldArray(nameTok, t)
+		}
+		p.consume() // consume '{'
+		var children []Node
+		for {
+			ct, err := p.peek()
+			if err != nil {
+				return Node{}, err
+			}
+			if ct.tag == tokRBrace {
+				p.consume()
+				break
+			}
+			if ct.tag == tokEOF {
+				return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: ct.line, Col: ct.col, Message: "unterminated block in block array, expected '}'"}}
+			}
+			child, err := p.parseNode()
+			if err != nil {
+				return Node{}, err
+			}
+			children = append(children, child)
+		}
+		children = dedup(children)
+		items = append(items, children)
+	}
+	return Node{BlockArray: &BlockArray{Name: nameTok.text, Items: items, Line: nameTok.line, Col: nameTok.col}}, nil
+}
+
+// reParseAsFieldArray handles the case where `name [` was followed by a scalar
+// value instead of `{`, meaning it's actually `name: [values...]` without a colon.
+// Wait — SKG requires colons for fields. So `name [` with non-brace content is an error.
+// But to keep the parser friendly, we parse it as a regular array and return it as a field.
+func (p *parser) reParseAsFieldArray(nameTok token, firstTok token) (Node, error) {
+	// Parse remaining array contents starting from firstTok (already peeked).
+	var items []Value
+	var elemType *ValueType
+
+	for {
+		t, err := p.peek()
+		if err != nil {
+			return Node{}, err
+		}
+		if t.tag == tokRBracket {
+			p.consume()
+			break
+		}
+		if t.tag == tokComma {
+			p.consume()
+			continue
+		}
+		if t.tag == tokEOF {
+			return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: t.line, Col: t.col, Message: "unterminated array, expected ']'"}}
+		}
+		val, err := p.parseValue()
+		if err != nil {
+			return Node{}, err
+		}
+		if elemType != nil {
+			if *elemType != val.Type {
+				return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: t.line, Col: t.col, Message: "mixed types in array"}}
+			}
+		} else {
+			et := val.Type
+			elemType = &et
+		}
+		items = append(items, val)
+	}
+
+	et := TypeString
+	if elemType != nil {
+		et = *elemType
+	}
+	return Node{Field: &Field{Key: nameTok.text, Value: Value{Type: TypeArray, Array: &Array{ElementType: et, Items: items}}, Line: nameTok.line, Col: nameTok.col}}, nil
 }
 
 func (p *parser) parseValue() (Value, error) {

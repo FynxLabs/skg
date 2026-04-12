@@ -3,7 +3,7 @@
 /// All string slices in the AST are allocated from the arena passed to the parser.
 /// Free everything by deiniting that arena - do not free individual slices.
 /// The type tag of a Value.
-pub const ValueType = enum { int, float, bool, string, array, @"null" };
+pub const ValueType = enum { int, float, bool, string, array, null };
 
 /// Structured error context for parse failures.
 pub const Diagnostic = struct {
@@ -27,7 +27,7 @@ pub const Value = union(ValueType) {
     /// Unescaped string content, no surrounding quotes. Allocated from parse arena.
     string: []const u8,
     array: Array,
-    @"null": void,
+    null: void,
 };
 
 /// A key-value pair: `key: value`
@@ -46,9 +46,19 @@ pub const Block = struct {
     col: u32,
 };
 
+/// A named list of blocks: `name [ { ... } { ... } ]`
+/// Each item is a slice of child nodes representing one block entry.
+pub const BlockArray = struct {
+    name: []const u8, // slice into source
+    items: [][]Node,
+    line: u32,
+    col: u32,
+};
+
 pub const Node = union(enum) {
     field: Field,
     block: Block,
+    block_array: BlockArray,
 };
 
 /// The parsed representation of a single .skg file.

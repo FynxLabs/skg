@@ -1,0 +1,28 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    {
+      "type": "block_array",
+      "name": "users",
+      "items": [
+        [
+          { "type": "field", "key": "name", "value": { "type": "string", "data": "admin" } },
+          { "type": "field", "key": "sudo", "value": { "type": "bool", "data": true } },
+          { "type": "field", "key": "groups", "value": { "type": "array", "element_type": "string", "data": [
+            { "type": "string", "data": "wheel" },
+            { "type": "string", "data": "video" }
+          ] } }
+        ],
+        [
+          { "type": "field", "key": "name", "value": { "type": "string", "data": "guest" } },
+          { "type": "field", "key": "sudo", "value": { "type": "bool", "data": false } },
+          { "type": "field", "key": "groups", "value": { "type": "array", "element_type": "string", "data": [
+            { "type": "string", "data": "users" }
+          ] } }
+        ]
+      ]
+    }
+  ]
+}

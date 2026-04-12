@@ -274,6 +274,33 @@ modules {
 
 Module blocks with no config may use `{}` on the same line.
 
+### Block Arrays
+
+A block array is an ordered list of anonymous blocks. The syntax is `name [ { ... } { ... } ]`.
+
+```go
+users [
+  {
+    name: "admin"
+    sudo: true
+    groups: ["wheel", "video"]
+  }
+  {
+    name: "guest"
+    sudo: false
+    groups: ["users"]
+  }
+]
+```
+
+Each `{ }` entry in the array is an independent block with its own fields and nested blocks. Entries are ordered — position is significant. Commas between entries are optional.
+
+Block arrays are distinct from scalar arrays (`[1, 2, 3]`). Scalar arrays appear as field values after a colon. Block arrays appear after an identifier without a colon, just like blocks.
+
+When merging (via imports), a block array replaces the entire previous value — items are not merged individually.
+
+Block arrays may also be written without a colon when the contents are scalar values. `tags ["alpha", "beta"]` is equivalent to `tags: ["alpha", "beta"]`.
+
 ---
 
 ## Fields
@@ -338,10 +365,11 @@ The parser produces a tree of nodes. Each node is one of:
 
 | Node    | Contents                                       |
 | ------- | ---------------------------------------------- |
-| `File`  | skg_version, imports, schema_version, children |
-| `Block` | name, children                                 |
-| `Field` | key, value                                     |
-| `Value` | type (Int/Float/Bool/String/Null/Array), data  |
+| `File`       | skg_version, imports, schema_version, children |
+| `Block`      | name, children                                 |
+| `BlockArray` | name, items (each item is a list of children)  |
+| `Field`      | key, value                                     |
+| `Value`      | type (Int/Float/Bool/String/Null/Array), data  |
 
 The consuming application walks this tree against its own type definitions to populate its config struct.
 

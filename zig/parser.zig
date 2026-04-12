@@ -220,10 +220,107 @@ const Parser = struct {
                 .line = name_tok.line,
                 .col = name_tok.col,
             } };
+        } else if (nt.tag == .lbracket) {
+            _ = try self.consume();
+            return try self.parseBlockArray(name_tok);
         } else {
-            self.setDiagnostic(nt.line, nt.col, "expected ':' or '{' after identifier");
+            self.setDiagnostic(nt.line, nt.col, "expected ':', '{', or '[' after identifier");
             return error.UnexpectedToken;
         }
+    }
+
+    /// Parse block array entries. '[' already consumed.
+    /// Expects `{ children }` blocks until `]`. If the first token after `[`
+    /// is not `{`, falls back to parsing as a scalar array field (colonless shorthand).
+    fn parseBlockArray(self: *Parser, name_tok: Token) ParseError!ast.Node {
+        var items: std.ArrayListUnmanaged([]ast.Node) = .empty;
+
+        while (true) {
+            const t = try self.peek();
+            if (t.tag == .rbracket) {
+                _ = try self.consume();
+                break;
+            }
+            if (t.tag == .comma) {
+                _ = try self.consume();
+                continue;
+            }
+            if (t.tag == .eof) {
+                self.setDiagnostic(t.line, t.col, "unterminated block array, expected ']'");
+                return error.ExpectedRbracket;
+            }
+            if (t.tag != .lbrace) {
+                // Not a block array — fall back to scalar array field
+                return self.reParseAsFieldArray(name_tok);
+            }
+            _ = try self.consume(); // consume '{'
+            var children: std.ArrayListUnmanaged(ast.Node) = .empty;
+            while (true) {
+                const ct = try self.peek();
+                if (ct.tag == .rbrace) {
+                    _ = try self.consume();
+                    break;
+                }
+                if (ct.tag == .eof) {
+                    self.setDiagnostic(ct.line, ct.col, "unterminated block in block array, expected '}'");
+                    return error.ExpectedRbrace;
+                }
+                try children.append(self.allocator, try self.parseNode());
+            }
+            const raw = try children.toOwnedSlice(self.allocator);
+            try items.append(self.allocator, try dedup(self.allocator, raw));
+        }
+        return ast.Node{ .block_array = .{
+            .name = name_tok.text,
+            .items = try items.toOwnedSlice(self.allocator),
+            .line = name_tok.line,
+            .col = name_tok.col,
+        } };
+    }
+
+    /// Fallback: `name [` was followed by a non-brace token, so parse
+    /// remaining contents as a scalar array and return as a field node.
+    fn reParseAsFieldArray(self: *Parser, name_tok: Token) ParseError!ast.Node {
+        var items: std.ArrayListUnmanaged(ast.Value) = .empty;
+        var element_type: ?ast.ValueType = null;
+
+        while (true) {
+            const t = try self.peek();
+            if (t.tag == .rbracket) {
+                _ = try self.consume();
+                break;
+            }
+            if (t.tag == .comma) {
+                _ = try self.consume();
+                continue;
+            }
+            if (t.tag == .eof) {
+                self.setDiagnostic(t.line, t.col, "unterminated array, expected ']'");
+                return error.ExpectedRbracket;
+            }
+
+            const val = try self.parseValue();
+            const vtype = std.meta.activeTag(val);
+            if (element_type) |et| {
+                if (et != vtype) {
+                    self.setDiagnostic(t.line, t.col, "mixed types in array");
+                    return error.MixedArrayTypes;
+                }
+            } else {
+                element_type = vtype;
+            }
+            try items.append(self.allocator, val);
+        }
+
+        return ast.Node{ .field = .{
+            .key = name_tok.text,
+            .value = .{ .array = .{
+                .element_type = element_type orelse .string,
+                .items = try items.toOwnedSlice(self.allocator),
+            } },
+            .line = name_tok.line,
+            .col = name_tok.col,
+        } };
     }
 
     fn parseValue(self: *Parser) ParseError!ast.Value {
@@ -239,7 +336,7 @@ const Parser = struct {
             } },
             .bool_true => ast.Value{ .bool = true },
             .bool_false => ast.Value{ .bool = false },
-            .null_lit => ast.Value{ .@"null" = {} },
+            .null_lit => ast.Value{ .null = {} },
             .string => ast.Value{ .string = try self.unescapeString(t.text) },
             .lbracket => try self.parseArray(),
             else => {

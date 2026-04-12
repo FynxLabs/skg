@@ -237,7 +237,7 @@ test "parser: null value" {
 
     const file = try parser.parseSource(arena.allocator(), "key: null", "test.skg", null);
     try testing.expectEqual(1, file.children.len);
-    try testing.expectEqual(ast.ValueType.@"null", std.meta.activeTag(file.children[0].field.value));
+    try testing.expectEqual(ast.ValueType.null, std.meta.activeTag(file.children[0].field.value));
 }
 
 test "lexer: null token" {

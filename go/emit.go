@@ -59,6 +59,22 @@ func emitNodes(buf *strings.Builder, nodes []Node, depth int) {
 			emitNodes(buf, n.Block.Children, depth+1)
 			writeIndent(buf, depth)
 			buf.WriteString("}\n")
+		} else if n.BlockArray != nil {
+			if i > 0 && depth == 0 {
+				buf.WriteByte('\n')
+			}
+			writeIndent(buf, depth)
+			buf.WriteString(n.BlockArray.Name)
+			buf.WriteString(" [\n")
+			for _, item := range n.BlockArray.Items {
+				writeIndent(buf, depth+1)
+				buf.WriteString("{\n")
+				emitNodes(buf, item, depth+2)
+				writeIndent(buf, depth+1)
+				buf.WriteString("}\n")
+			}
+			writeIndent(buf, depth)
+			buf.WriteString("]\n")
 		}
 	}
 }

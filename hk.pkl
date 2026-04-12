@@ -1,0 +1,35 @@
+amends "package://github.com/jdx/hk/releases/download/v1.41.0/hk@1.41.0#/Config.pkl"
+
+import "package://github.com/jdx/hk/releases/download/v1.41.0/hk@1.41.0#/Builtins.pkl" as builtins
+
+local linters = new Mapping<String, Step> {
+  ["zig-fmt"] {
+    glob = List("*.zig")
+    check = "zig fmt --check {{files}}"
+    fix = "zig fmt {{files}}"
+  }
+  ["go-fmt"] = builtins.go_fmt
+  ["go-vet"] = builtins.go_vet
+}
+
+local tests = new Mapping<String, Step> {
+  ["zig-test"] {
+    check = "zig build test"
+    exclusive = true
+  }
+  ["go-test"] {
+    check = "cd go && go test ./..."
+    exclusive = true
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+  ["pre-push"] {
+    steps = tests
+  }
+}

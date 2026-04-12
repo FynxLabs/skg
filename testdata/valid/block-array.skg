@@ -1,0 +1,12 @@
+users [
+  {
+    name: "admin"
+    sudo: true
+    groups: ["wheel", "video"]
+  }
+  {
+    name: "guest"
+    sudo: false
+    groups: ["users"]
+  }
+]
