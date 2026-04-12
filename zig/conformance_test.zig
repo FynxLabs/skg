@@ -158,6 +158,20 @@ fn compareNodes(expected_children: []std.json.Value, actual_children: []const as
                 const nested = expectJsonArray(children_json) orelse return error.BadChildren;
                 try compareNodes(nested, actual.block.children);
             }
+        } else if (std.mem.eql(u8, node_type, "block_array")) {
+            const actual = actual_children[i];
+            try testing.expect(actual == .block_array);
+            const expected_name = expectJsonString(child_obj.get("name") orelse return error.MissingName) orelse return error.BadName;
+            try testing.expectEqualStrings(expected_name, actual.block_array.name);
+
+            if (child_obj.get("items")) |items_json| {
+                const expected_items = expectJsonArray(items_json) orelse return error.BadData;
+                try testing.expectEqual(expected_items.len, actual.block_array.items.len);
+                for (expected_items, 0..) |item_json, j| {
+                    const item_children = expectJsonArray(item_json) orelse return error.BadChildren;
+                    try compareNodes(item_children, actual.block_array.items[j]);
+                }
+            }
         }
     }
 }

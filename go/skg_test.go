@@ -394,6 +394,181 @@ func TestMarshalNested(t *testing.T) {
 	}
 }
 
+func TestUnmarshalMapStringSlice(t *testing.T) {
+	// map[string][]string — field keys are map keys, arrays are values
+	type Config struct {
+		Addons map[string][]string `skg:"addons"`
+	}
+	src := []byte(`
+addons {
+  audio: ["ardour", "jack2"]
+  gaming: ["steam", "lutris"]
+}
+`)
+	var cfg Config
+	if err := Unmarshal(src, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Addons) != 2 {
+		t.Fatalf("expected 2 addon groups, got %d", len(cfg.Addons))
+	}
+	if len(cfg.Addons["audio"]) != 2 || cfg.Addons["audio"][0] != "ardour" {
+		t.Errorf("unexpected audio addons: %v", cfg.Addons["audio"])
+	}
+	if len(cfg.Addons["gaming"]) != 2 || cfg.Addons["gaming"][1] != "lutris" {
+		t.Errorf("unexpected gaming addons: %v", cfg.Addons["gaming"])
+	}
+}
+
+func TestUnmarshalMapStringString(t *testing.T) {
+	// map[string]string — flat key-value pairs
+	type Config struct {
+		Env map[string]string `skg:"env"`
+	}
+	src := []byte(`
+env {
+  HOME: "/home/user"
+  SHELL: "/bin/zsh"
+}
+`)
+	var cfg Config
+	if err := Unmarshal(src, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Env["HOME"] != "/home/user" {
+		t.Errorf("expected HOME=/home/user, got %q", cfg.Env["HOME"])
+	}
+	if cfg.Env["SHELL"] != "/bin/zsh" {
+		t.Errorf("expected SHELL=/bin/zsh, got %q", cfg.Env["SHELL"])
+	}
+}
+
+func TestUnmarshalMapStringAny(t *testing.T) {
+	// map[string]interface{} — the Extra bag pattern
+	type Config struct {
+		Extra map[string]interface{} `skg:"extra"`
+	}
+	src := []byte(`
+extra {
+  retries: 3
+  label: "custom"
+  verbose: true
+  rate: 1.5
+  nothing: null
+}
+`)
+	var cfg Config
+	if err := Unmarshal(src, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Extra["retries"] != int64(3) {
+		t.Errorf("expected retries=3, got %v (%T)", cfg.Extra["retries"], cfg.Extra["retries"])
+	}
+	if cfg.Extra["label"] != "custom" {
+		t.Errorf("expected label=custom, got %v", cfg.Extra["label"])
+	}
+	if cfg.Extra["verbose"] != true {
+		t.Errorf("expected verbose=true, got %v", cfg.Extra["verbose"])
+	}
+	if cfg.Extra["rate"] != 1.5 {
+		t.Errorf("expected rate=1.5, got %v", cfg.Extra["rate"])
+	}
+	if cfg.Extra["nothing"] != nil {
+		t.Errorf("expected nothing=nil, got %v", cfg.Extra["nothing"])
+	}
+}
+
+func TestUnmarshalMapStruct(t *testing.T) {
+	// map[string]struct — block names are map keys, children decode into struct
+	type Disk struct {
+		Device string `skg:"device"`
+		FS     string `skg:"fs"`
+		Mount  string `skg:"mount"`
+	}
+	type Config struct {
+		Disks map[string]Disk `skg:"disks"`
+	}
+	src := []byte(`
+disks {
+  root {
+    device: "/dev/sda1"
+    fs: "ext4"
+    mount: "/"
+  }
+  home {
+    device: "/dev/sda2"
+    fs: "btrfs"
+    mount: "/home"
+  }
+}
+`)
+	var cfg Config
+	if err := Unmarshal(src, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Disks) != 2 {
+		t.Fatalf("expected 2 disks, got %d", len(cfg.Disks))
+	}
+	root := cfg.Disks["root"]
+	if root.Device != "/dev/sda1" || root.FS != "ext4" || root.Mount != "/" {
+		t.Errorf("unexpected root disk: %+v", root)
+	}
+	home := cfg.Disks["home"]
+	if home.Device != "/dev/sda2" || home.FS != "btrfs" || home.Mount != "/home" {
+		t.Errorf("unexpected home disk: %+v", home)
+	}
+}
+
+func TestMarshalMap(t *testing.T) {
+	type Config struct {
+		Addons map[string][]string `skg:"addons"`
+	}
+	cfg := Config{
+		Addons: map[string][]string{
+			"audio": {"ardour", "jack2"},
+		},
+	}
+	data, err := Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Round-trip it back
+	var got Config
+	if err := Unmarshal(data, &got); err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Addons["audio"]) != 2 || got.Addons["audio"][0] != "ardour" {
+		t.Errorf("round-trip failed: %v", got.Addons)
+	}
+}
+
+func TestMarshalMapAny(t *testing.T) {
+	type Config struct {
+		Extra map[string]interface{} `skg:"extra"`
+	}
+	cfg := Config{
+		Extra: map[string]interface{}{
+			"count": int64(5),
+			"name":  "test",
+			"ok":    true,
+		},
+	}
+	data, err := Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got Config
+	if err := Unmarshal(data, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Extra["count"] != int64(5) {
+		t.Errorf("expected count=5, got %v", got.Extra["count"])
+	}
+	if got.Extra["name"] != "test" {
+		t.Errorf("expected name=test, got %v", got.Extra["name"])
+	}
+}
+
 func TestParseErrorDiagnostic(t *testing.T) {
 	src := []byte(`name`)
 	_, err := Parse(src)
@@ -409,5 +584,171 @@ func TestParseErrorDiagnostic(t *testing.T) {
 	}
 	if pe.Diag.Message == "" {
 		t.Error("expected non-empty message")
+	}
+}
+
+func TestParseBlockArray(t *testing.T) {
+	src := []byte(`
+users [
+  {
+    name: "admin"
+    sudo: true
+    groups: ["wheel", "video"]
+  }
+  {
+    name: "guest"
+    sudo: false
+    groups: ["users"]
+  }
+]
+`)
+	f, err := Parse(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.Children) != 1 {
+		t.Fatalf("expected 1 child, got %d", len(f.Children))
+	}
+	ba := f.Children[0].BlockArray
+	if ba == nil {
+		t.Fatal("expected block array node")
+	}
+	if ba.Name != "users" {
+		t.Errorf("expected name 'users', got %q", ba.Name)
+	}
+	if len(ba.Items) != 2 {
+		t.Fatalf("expected 2 items, got %d", len(ba.Items))
+	}
+	// First item: name=levi
+	if ba.Items[0][0].Field == nil || ba.Items[0][0].Field.Key != "name" || ba.Items[0][0].Field.Value.Str != "admin" {
+		t.Error("first item: expected name=levi")
+	}
+	// Second item: name=guest
+	if ba.Items[1][0].Field == nil || ba.Items[1][0].Field.Key != "name" || ba.Items[1][0].Field.Value.Str != "guest" {
+		t.Error("second item: expected name=guest")
+	}
+}
+
+func TestBlockArrayUnmarshal(t *testing.T) {
+	type User struct {
+		Name   string   `skg:"name"`
+		Sudo   bool     `skg:"sudo"`
+		Groups []string `skg:"groups"`
+	}
+	type Config struct {
+		Users []User `skg:"users"`
+	}
+
+	src := []byte(`
+users [
+  {
+    name: "admin"
+    sudo: true
+    groups: ["wheel", "video"]
+  }
+  {
+    name: "guest"
+    sudo: false
+    groups: ["users"]
+  }
+]
+`)
+	var cfg Config
+	if err := Unmarshal(src, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Users) != 2 {
+		t.Fatalf("expected 2 users, got %d", len(cfg.Users))
+	}
+	if cfg.Users[0].Name != "admin" {
+		t.Errorf("expected first user 'levi', got %q", cfg.Users[0].Name)
+	}
+	if !cfg.Users[0].Sudo {
+		t.Error("expected first user sudo=true")
+	}
+	if len(cfg.Users[0].Groups) != 2 || cfg.Users[0].Groups[0] != "wheel" {
+		t.Errorf("expected first user groups=[wheel, video], got %v", cfg.Users[0].Groups)
+	}
+	if cfg.Users[1].Name != "guest" {
+		t.Errorf("expected second user 'guest', got %q", cfg.Users[1].Name)
+	}
+	if cfg.Users[1].Sudo {
+		t.Error("expected second user sudo=false")
+	}
+}
+
+func TestBlockArrayMarshal(t *testing.T) {
+	type User struct {
+		Name string `skg:"name"`
+		Sudo bool   `skg:"sudo"`
+	}
+	type Config struct {
+		Users []User `skg:"users"`
+	}
+
+	cfg := Config{
+		Users: []User{
+			{Name: "admin", Sudo: true},
+			{Name: "guest", Sudo: false},
+		},
+	}
+	data, err := Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Round-trip: unmarshal the marshaled output
+	var cfg2 Config
+	if err := Unmarshal(data, &cfg2); err != nil {
+		t.Fatalf("round-trip unmarshal failed: %v\ndata:\n%s", err, string(data))
+	}
+	if len(cfg2.Users) != 2 {
+		t.Fatalf("round-trip: expected 2 users, got %d", len(cfg2.Users))
+	}
+	if cfg2.Users[0].Name != "admin" || cfg2.Users[1].Name != "guest" {
+		t.Errorf("round-trip: user names don't match")
+	}
+}
+
+func TestBlockArrayEmit(t *testing.T) {
+	src := []byte(`users [
+  {
+    name: "admin"
+  }
+  {
+    name: "guest"
+  }
+]
+`)
+	f, err := Parse(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := Emit(f)
+	expected := "users [\n  {\n    name: \"admin\"\n  }\n  {\n    name: \"guest\"\n  }\n]\n"
+	if string(out) != expected {
+		t.Errorf("emit mismatch:\ngot:\n%s\nexpected:\n%s", string(out), expected)
+	}
+}
+
+func TestBlockArrayColonlessFallback(t *testing.T) {
+	// name [ scalar_values ] without a colon should still work
+	src := []byte(`tags ["alpha", "beta"]`)
+	f, err := Parse(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(f.Children) != 1 {
+		t.Fatalf("expected 1 child, got %d", len(f.Children))
+	}
+	field := f.Children[0].Field
+	if field == nil {
+		t.Fatal("expected field node for scalar array")
+	}
+	if field.Value.Type != TypeArray {
+		t.Fatalf("expected array value, got %v", field.Value.Type)
+	}
+	if len(field.Value.Array.Items) != 2 {
+		t.Fatalf("expected 2 items, got %d", len(field.Value.Array.Items))
 	}
 }

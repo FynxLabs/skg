@@ -83,11 +83,21 @@ type Block struct {
 	Col      int
 }
 
-// Node is either a field or a block.
+// BlockArray is a named list of blocks: `name [ { ... } { ... } ]`
+// Each item is a list of child nodes representing one block entry.
+type BlockArray struct {
+	Name  string
+	Items [][]Node
+	Line  int
+	Col   int
+}
+
+// Node is either a field, a block, or a block array.
 type Node struct {
 	// Exactly one is non-nil.
-	Field *Field
-	Block *Block
+	Field      *Field
+	Block      *Block
+	BlockArray *BlockArray
 }
 
 // File is the parsed representation of a single .skg file.

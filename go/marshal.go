@@ -55,6 +55,28 @@ func encodeStruct(rv reflect.Value) ([]Node, error) {
 			continue
 		}
 
+		if fv.Kind() == reflect.Map {
+			children, err := encodeMap(fv)
+			if err != nil {
+				return nil, fmt.Errorf("skg: block %q: %w", tag, err)
+			}
+			nodes = append(nodes, Node{Block: &Block{Name: tag, Children: children}})
+			continue
+		}
+
+		if fv.Kind() == reflect.Slice && fv.Type().Elem().Kind() == reflect.Struct {
+			var items [][]Node
+			for i := 0; i < fv.Len(); i++ {
+				children, err := encodeStruct(fv.Index(i))
+				if err != nil {
+					return nil, fmt.Errorf("skg: block array %q index %d: %w", tag, i, err)
+				}
+				items = append(items, children)
+			}
+			nodes = append(nodes, Node{BlockArray: &BlockArray{Name: tag, Items: items}})
+			continue
+		}
+
 		val, err := encodeValue(fv)
 		if err != nil {
 			return nil, fmt.Errorf("skg: field %q: %w", tag, err)
@@ -65,7 +87,54 @@ func encodeStruct(rv reflect.Value) ([]Node, error) {
 	return nodes, nil
 }
 
+func encodeMap(rv reflect.Value) ([]Node, error) {
+	var nodes []Node
+	iter := rv.MapRange()
+	for iter.Next() {
+		key := iter.Key().String()
+		val := iter.Value()
+
+		// Unwrap interface{}
+		if val.Kind() == reflect.Interface {
+			val = val.Elem()
+		}
+
+		if val.Kind() == reflect.Struct {
+			children, err := encodeStruct(val)
+			if err != nil {
+				return nil, fmt.Errorf("key %q: %w", key, err)
+			}
+			nodes = append(nodes, Node{Block: &Block{Name: key, Children: children}})
+			continue
+		}
+
+		if val.Kind() == reflect.Map {
+			children, err := encodeMap(val)
+			if err != nil {
+				return nil, fmt.Errorf("key %q: %w", key, err)
+			}
+			nodes = append(nodes, Node{Block: &Block{Name: key, Children: children}})
+			continue
+		}
+
+		v, err := encodeValue(val)
+		if err != nil {
+			return nil, fmt.Errorf("key %q: %w", key, err)
+		}
+		nodes = append(nodes, Node{Field: &Field{Key: key, Value: v}})
+	}
+	return nodes, nil
+}
+
 func encodeValue(rv reflect.Value) (Value, error) {
+	// Unwrap interface{}
+	if rv.Kind() == reflect.Interface {
+		if rv.IsNil() {
+			return Value{Type: TypeNull}, nil
+		}
+		rv = rv.Elem()
+	}
+
 	switch rv.Kind() {
 	case reflect.String:
 		return Value{Type: TypeString, Str: rv.String()}, nil

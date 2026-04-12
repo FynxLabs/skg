@@ -36,7 +36,7 @@ test "reject bad escape sequence" {
 
 test "reject missing colon" {
     const diag = try expectParseFailure("key \"value\"");
-    try testing.expectEqualStrings("expected ':' or '{' after identifier", diag.message);
+    try testing.expectEqualStrings("expected ':', '{', or '[' after identifier", diag.message);
 }
 
 test "reject unclosed block" {

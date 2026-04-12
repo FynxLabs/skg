@@ -46,9 +46,19 @@ pub const Block = struct {
     col: u32,
 };
 
+/// A named list of blocks: `name [ { ... } { ... } ]`
+/// Each item is a slice of child nodes representing one block entry.
+pub const BlockArray = struct {
+    name: []const u8, // slice into source
+    items: [][]Node,
+    line: u32,
+    col: u32,
+};
+
 pub const Node = union(enum) {
     field: Field,
     block: Block,
+    block_array: BlockArray,
 };
 
 /// The parsed representation of a single .skg file.

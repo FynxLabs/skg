@@ -58,6 +58,20 @@ fn emitNodes(w: anytype, nodes: []const ast.Node, depth: usize) !void {
                 try writeIndent(w, depth);
                 try w.writeAll("}\n");
             },
+            .block_array => |ba| {
+                if (i > 0 and depth == 0) try w.writeByte('\n');
+                try writeIndent(w, depth);
+                try w.print("{s} [\n", .{ba.name});
+                for (ba.items) |item| {
+                    try writeIndent(w, depth + 1);
+                    try w.writeAll("{\n");
+                    try emitNodes(w, item, depth + 2);
+                    try writeIndent(w, depth + 1);
+                    try w.writeAll("}\n");
+                }
+                try writeIndent(w, depth);
+                try w.writeAll("]\n");
+            },
         }
     }
 }

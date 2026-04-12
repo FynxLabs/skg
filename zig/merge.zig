@@ -34,14 +34,20 @@ pub fn mergeNodes(allocator: Allocator, base: []const ast.Node, overlay: []const
             switch (ov_node) {
                 .field => result.items[pos] = ov_node,
                 .block => |ov_block| {
-                    const existing = result.items[pos].block;
-                    result.items[pos] = ast.Node{ .block = .{
-                        .name = existing.name,
-                        .children = try mergeNodes(allocator, existing.children, ov_block.children),
-                        .line = existing.line,
-                        .col = existing.col,
-                    } };
+                    // Only recursively merge if existing is also a block
+                    if (result.items[pos] == .block) {
+                        const existing = result.items[pos].block;
+                        result.items[pos] = ast.Node{ .block = .{
+                            .name = existing.name,
+                            .children = try mergeNodes(allocator, existing.children, ov_block.children),
+                            .line = existing.line,
+                            .col = existing.col,
+                        } };
+                    } else {
+                        result.items[pos] = ov_node;
+                    }
                 },
+                .block_array => result.items[pos] = ov_node,
             }
         } else {
             const pos = result.items.len;
@@ -57,5 +63,6 @@ fn nodeKey(node: ast.Node) []const u8 {
     return switch (node) {
         .field => |f| f.key,
         .block => |b| b.name,
+        .block_array => |ba| ba.name,
     };
 }

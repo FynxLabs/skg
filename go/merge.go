@@ -46,5 +46,8 @@ func nodeKey(n Node) string {
 	if n.Field != nil {
 		return n.Field.Key
 	}
-	return n.Block.Name
+	if n.Block != nil {
+		return n.Block.Name
+	}
+	return n.BlockArray.Name
 }
