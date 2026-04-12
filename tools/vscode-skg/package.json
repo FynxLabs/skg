@@ -1,0 +1,39 @@
+{
+  "name": "vscode-skg",
+  "displayName": "SKG Config",
+  "description": "Syntax highlighting for .skg (Static Key Graph) configuration files used by Dusk",
+  "version": "0.1.0",
+  "publisher": "fynxlabs",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "skg",
+        "aliases": [
+          "SKG Config",
+          "skg"
+        ],
+        "extensions": [
+          ".skg"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "skg",
+        "scopeName": "source.skg",
+        "path": "./syntaxes/skg.tmLanguage.json"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.7.1"
+  }
+}

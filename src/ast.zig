@@ -1,0 +1,58 @@
+/// SKG AST node types.
+///
+/// All string slices in the AST are allocated from the arena passed to the parser.
+/// Free everything by deiniting that arena - do not free individual slices.
+/// The type tag of a Value.
+pub const ValueType = enum { int, float, bool, string, array };
+
+/// A typed array. All elements must be the same type (enforced by parser).
+pub const Array = struct {
+    element_type: ValueType,
+    items: []Value,
+};
+
+/// A scalar or array value from a field assignment.
+pub const Value = union(ValueType) {
+    int: i64,
+    float: f64,
+    bool: bool,
+    /// Unescaped string content, no surrounding quotes. Allocated from parse arena.
+    string: []const u8,
+    array: Array,
+};
+
+/// A key-value pair: `key: value`
+pub const Field = struct {
+    key: []const u8, // slice into source (idents are never escaped)
+    value: Value,
+    line: u32,
+    col: u32,
+};
+
+/// A named scope: `name { children... }`
+pub const Block = struct {
+    name: []const u8, // slice into source
+    children: []Node,
+    line: u32,
+    col: u32,
+};
+
+pub const Node = union(enum) {
+    field: Field,
+    block: Block,
+};
+
+/// The parsed representation of a single .skg file.
+/// Does not include resolved imports - see root.zig for that.
+pub const File = struct {
+    /// `skg_version: 1.0` - null if absent.
+    skg_version: ?f64,
+    /// `schema_version: "1.0.0"` - unescaped, null if absent. Allocated from parse arena.
+    schema_version: ?[]const u8,
+    /// Raw import path strings (unescaped, no quotes). Allocated from parse arena.
+    import_paths: [][]const u8,
+    /// Top-level blocks and fields (after skg_version, imports, schema_version).
+    children: []Node,
+    /// File path this was parsed from (for error messages and import resolution).
+    path: []const u8,
+};

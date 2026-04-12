@@ -1,0 +1,99 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SKG Config",
+  "scopeName": "source.skg",
+  "fileTypes": ["skg"],
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#block" },
+    { "include": "#pair" },
+    { "include": "#value" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.number-sign.skg",
+      "match": "#.*$"
+    },
+    "string": {
+      "name": "string.quoted.double.skg",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.skg",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "number": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.skg",
+          "match": "-?\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.skg",
+          "match": "-?\\b\\d+\\b"
+        }
+      ]
+    },
+    "boolean": {
+      "name": "constant.language.boolean.skg",
+      "match": "\\b(true|false)\\b"
+    },
+    "block": {
+      "name": "meta.block.skg",
+      "begin": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(\\{)",
+      "beginCaptures": {
+        "1": { "name": "entity.name.section.skg" },
+        "2": { "name": "punctuation.section.block.begin.skg" }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": { "name": "punctuation.section.block.end.skg" }
+      },
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#block" },
+        { "include": "#pair" },
+        { "include": "#value" }
+      ]
+    },
+    "pair": {
+      "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(:)",
+      "captures": {
+        "1": { "name": "variable.other.property.skg" },
+        "2": { "name": "punctuation.separator.key-value.skg" }
+      }
+    },
+    "array": {
+      "name": "meta.array.skg",
+      "begin": "\\[",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.array.begin.skg" }
+      },
+      "end": "\\]",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.array.end.skg" }
+      },
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#string" },
+        { "include": "#boolean" },
+        { "include": "#number" },
+        {
+          "name": "punctuation.separator.comma.skg",
+          "match": ","
+        }
+      ]
+    },
+    "value": {
+      "patterns": [
+        { "include": "#string" },
+        { "include": "#boolean" },
+        { "include": "#number" },
+        { "include": "#array" }
+      ]
+    }
+  }
+}

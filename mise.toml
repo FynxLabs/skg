@@ -1,0 +1,14 @@
+[tools]
+zig = "latest"
+
+[tasks.test]
+run = "zig build test"
+description = "Run SKG parser tests"
+
+[tasks.lint]
+run = "zig fmt --check src/"
+description = "Check source formatting"
+
+[tasks.check]
+depends = ["lint", "test"]
+description = "Full check - lint + tests"
