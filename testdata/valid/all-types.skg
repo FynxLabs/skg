@@ -1,0 +1,7 @@
+str: "hello world"
+num_int: 42
+num_neg: -7
+num_float: 3.14
+flag: true
+off: false
+empty: null

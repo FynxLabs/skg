@@ -1,0 +1,17 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "matrix", "value": { "type": "array", "element_type": "array", "data": [
+      { "type": "array", "element_type": "int", "data": [
+        { "type": "int", "data": 1 },
+        { "type": "int", "data": 2 }
+      ] },
+      { "type": "array", "element_type": "int", "data": [
+        { "type": "int", "data": 3 },
+        { "type": "int", "data": 4 }
+      ] }
+    ] } }
+  ]
+}

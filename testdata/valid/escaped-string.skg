@@ -1,0 +1,4 @@
+msg: "say \"hello\""
+path: "C:\\Users\\test"
+tabs: "col1\tcol2"
+lines: "line1\nline2"

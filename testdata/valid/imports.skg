@@ -1,0 +1,6 @@
+import [
+  "./theme.skg",
+  "./keybinds.skg",
+]
+
+name: "main"

@@ -1,0 +1,27 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "tags", "value": { "type": "array", "element_type": "string", "data": [
+      { "type": "string", "data": "alpha" },
+      { "type": "string", "data": "beta" },
+      { "type": "string", "data": "gamma" }
+    ] } },
+    { "type": "field", "key": "numbers", "value": { "type": "array", "element_type": "int", "data": [
+      { "type": "int", "data": 1 },
+      { "type": "int", "data": 2 },
+      { "type": "int", "data": 3 }
+    ] } },
+    { "type": "field", "key": "floats", "value": { "type": "array", "element_type": "float", "data": [
+      { "type": "float", "data": 1.0 },
+      { "type": "float", "data": 2.5 },
+      { "type": "float", "data": 3.7 }
+    ] } },
+    { "type": "field", "key": "flags", "value": { "type": "array", "element_type": "bool", "data": [
+      { "type": "bool", "data": true },
+      { "type": "bool", "data": false },
+      { "type": "bool", "data": true }
+    ] } }
+  ]
+}

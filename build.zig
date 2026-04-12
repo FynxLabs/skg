@@ -5,14 +5,14 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     _ = b.addModule("skg", .{
-        .root_source_file = b.path("src/root.zig"),
+        .root_source_file = b.path("zig/root.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const tests = b.addTest(.{
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/tests.zig"),
+            .root_source_file = b.path("zig/tests.zig"),
             .target = target,
             .optimize = optimize,
         }),
@@ -21,14 +21,24 @@ pub fn build(b: *std.Build) void {
 
     const malformed_tests = b.addTest(.{
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/malformed_test.zig"),
+            .root_source_file = b.path("zig/malformed_test.zig"),
             .target = target,
             .optimize = optimize,
         }),
     });
     const run_malformed_tests = b.addRunArtifact(malformed_tests);
 
+    const conformance_tests = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("zig/conformance_test.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    const run_conformance_tests = b.addRunArtifact(conformance_tests);
+
     const test_step = b.step("test", "Run SKG parser tests");
     test_step.dependOn(&run_tests.step);
     test_step.dependOn(&run_malformed_tests.step);
+    test_step.dependOn(&run_conformance_tests.step);
 }

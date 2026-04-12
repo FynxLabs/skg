@@ -28,7 +28,7 @@ A `.skg` file consists of, in order:
 4. Zero or more blocks and fields
 
 ```go
-skg_version: 1.0
+skg_version: "1.0"
 
 import [
   "./theme.skg",
@@ -107,7 +107,7 @@ Circular imports are an error. The parser detects and rejects them.
 
 ## Value Types
 
-There are four scalar value types and one collection type. The type is determined by syntax - no type annotations.
+There are five scalar value types and one collection type. The type is determined by syntax - no type annotations.
 
 ### Int
 
@@ -140,9 +140,19 @@ managed: true
 vsync: false
 ```
 
+### Null
+
+The literal `null` represents an absent value. No quotes.
+
+```go
+background: null
+```
+
+Null is useful for explicitly unsetting an inherited value from an import.
+
 ### String
 
-Any value that is not an int, float, or bool must be quoted with double quotes `"`.
+Any value that is not an int, float, bool, or null must be quoted with double quotes `"`.
 
 ```go
 accent: "green"
@@ -161,6 +171,16 @@ Single quotes are not valid. Escape sequences within strings:
 | `\n`     | Newline              |
 | `\t`     | Tab                  |
 
+### Multiline Strings
+
+Triple-quoted strings (`"""..."""`) span multiple lines. No escape processing is performed inside triple-quoted strings — the content between the delimiters is taken literally.
+
+```go
+description: """This is a
+multiline string that preserves
+newlines exactly as written."""
+```
+
 ### Array
 
 An ordered list of values enclosed in `[ ]`, comma-separated. All elements must be the same type. Trailing comma is allowed.
@@ -169,6 +189,12 @@ An ordered list of values enclosed in `[ ]`, comma-separated. All elements must 
 workspace_go: ["super+1", "super+2", "super+3"]
 
 sizes: [8.0, 12.0, 16.0]
+```
+
+Arrays may be nested. All inner arrays must have the same element type:
+
+```go
+matrix: [[1, 2], [3, 4]]
 ```
 
 Arrays may span multiple lines:
@@ -270,10 +296,10 @@ max-crashes: 3    # invalid - hyphens not allowed in keys
 
 ## SKG Version
 
-`skg_version` declares which version of the SKG language spec this file uses. It is a float.
+`skg_version` declares which version of the SKG language spec this file uses. It is a quoted string.
 
 ```go
-skg_version: 1.0
+skg_version: "1.0"
 ```
 
 If omitted, the latest version supported by the parser is assumed.
@@ -315,7 +341,7 @@ The parser produces a tree of nodes. Each node is one of:
 | `File`  | skg_version, imports, schema_version, children |
 | `Block` | name, children                                 |
 | `Field` | key, value                                     |
-| `Value` | type (Int/Float/Bool/String/Array), data       |
+| `Value` | type (Int/Float/Bool/String/Null/Array), data  |
 
 The consuming application walks this tree against its own type definitions to populate its config struct.
 
@@ -338,7 +364,7 @@ dusk.skg:7:12 - string value must be quoted: use "top" not top
 ```go
 # dusk.skg - main config
 
-skg_version: 1.0
+skg_version: "1.0"
 
 import [
   "./theme.skg",

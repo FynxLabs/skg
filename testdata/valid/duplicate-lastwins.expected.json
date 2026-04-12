@@ -1,0 +1,8 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "key", "value": { "type": "string", "data": "second" } }
+  ]
+}

@@ -1,0 +1,4 @@
+theme {
+  accent: "green"
+  size: 13.0
+}

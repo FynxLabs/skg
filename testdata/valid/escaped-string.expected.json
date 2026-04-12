@@ -1,0 +1,11 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "msg", "value": { "type": "string", "data": "say \"hello\"" } },
+    { "type": "field", "key": "path", "value": { "type": "string", "data": "C:\\Users\\test" } },
+    { "type": "field", "key": "tabs", "value": { "type": "string", "data": "col1\tcol2" } },
+    { "type": "field", "key": "lines", "value": { "type": "string", "data": "line1\nline2" } }
+  ]
+}

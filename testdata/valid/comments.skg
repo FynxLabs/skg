@@ -1,0 +1,4 @@
+# This is a comment
+name: "hello" # inline comment
+# Another comment
+count: 42

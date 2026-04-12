@@ -1,13 +1,47 @@
 [tools]
 zig = "latest"
+go = "latest"
+node = "lts"
+pkl = "latest"
+hk = "latest"
+"npm:@fission-ai/openspec" = "latest"
+
+[env]
+HK_MISE = "1"
+
+[hooks]
+postinstall = """
+  hk install --mise
+  if [ ! -d openspec ]; then
+    openspec init --tools claude
+  else
+    openspec update
+  fi
+"""
 
 [tasks.test]
+run = "zig build test && cd go && go test ./..."
+description = "Run all parser tests (Zig + Go)"
+
+[tasks."test:zig"]
 run = "zig build test"
-description = "Run SKG parser tests"
+description = "Run Zig parser tests"
+
+[tasks."test:go"]
+run = "cd go && go test ./..."
+description = "Run Go parser tests"
 
 [tasks.lint]
-run = "zig fmt --check src/"
+run = "zig fmt --check zig/"
 description = "Check source formatting"
+
+[tasks.fmt]
+run = "zig fmt zig/"
+description = "Format all source files in place"
+
+[tasks.clean]
+run = "rm -rf zig-out zig-cache .zig-cache"
+description = "Remove build artifacts"
 
 [tasks.check]
 depends = ["lint", "test"]

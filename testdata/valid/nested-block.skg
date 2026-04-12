@@ -1,0 +1,11 @@
+panel {
+  bar_001 {
+    position: "top"
+    height: 32.0
+    zone {
+      zone_001 {
+        alignment: "start"
+      }
+    }
+  }
+}

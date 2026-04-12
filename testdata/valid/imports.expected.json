@@ -1,0 +1,8 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": ["./theme.skg", "./keybinds.skg"],
+  "children": [
+    { "type": "field", "key": "name", "value": { "type": "string", "data": "main" } }
+  ]
+}

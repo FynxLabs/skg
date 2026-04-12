@@ -1,0 +1,34 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    {
+      "type": "block",
+      "name": "panel",
+      "children": [
+        {
+          "type": "block",
+          "name": "bar_001",
+          "children": [
+            { "type": "field", "key": "position", "value": { "type": "string", "data": "top" } },
+            { "type": "field", "key": "height", "value": { "type": "float", "data": 32.0 } },
+            {
+              "type": "block",
+              "name": "zone",
+              "children": [
+                {
+                  "type": "block",
+                  "name": "zone_001",
+                  "children": [
+                    { "type": "field", "key": "alignment", "value": { "type": "string", "data": "start" } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

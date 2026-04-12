@@ -1,0 +1,8 @@
+{
+  "skg_version": "1.0",
+  "schema_version": "2.1.0",
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "name", "value": { "type": "string", "data": "test" } }
+  ]
+}

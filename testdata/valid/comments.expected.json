@@ -1,0 +1,9 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "name", "value": { "type": "string", "data": "hello" } },
+    { "type": "field", "key": "count", "value": { "type": "int", "data": 42 } }
+  ]
+}
