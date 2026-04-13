@@ -21,10 +21,15 @@ pub const ParseError = LexError || error{
     MixedArrayTypes,
     DuplicateSKGVersion,
     DuplicateSchemaVersion,
+    UnsupportedSKGVersion,
     InvalidInt,
     InvalidFloat,
     OutOfMemory,
 };
+
+/// The highest skg_version this parser supports.
+pub const supported_major: u8 = 1;
+pub const supported_minor: u8 = 0;
 
 const ast_mod = @import("ast.zig");
 
@@ -163,6 +168,10 @@ const Parser = struct {
                         return error.DuplicateSKGVersion;
                     }
                     skg_version = try self.unescapeString(val_tok.text);
+                    if (!checkVersion(skg_version.?)) {
+                        self.setDiagnostic(val_tok.line, val_tok.col, "skg_version is newer than this parser supports");
+                        return error.UnsupportedSKGVersion;
+                    }
                     continue;
                 }
                 if (std.mem.eql(u8, t.text, "schema_version")) {
@@ -514,6 +523,16 @@ const Parser = struct {
 
 fn dedup(allocator: Allocator, nodes: []const ast.Node) ![]ast.Node {
     return merge.mergeNodes(allocator, &.{}, nodes);
+}
+
+/// Return true if the declared version is supported (major.minor <= supported).
+fn checkVersion(version: []const u8) bool {
+    const dot = std.mem.indexOfScalar(u8, version, '.') orelse return false;
+    const major = std.fmt.parseUnsigned(u8, version[0..dot], 10) catch return false;
+    const minor = std.fmt.parseUnsigned(u8, version[dot + 1 ..], 10) catch return false;
+    if (major > supported_major) return false;
+    if (major == supported_major and minor > supported_minor) return false;
+    return true;
 }
 
 /// Parse an SKG source string into an ast.File.

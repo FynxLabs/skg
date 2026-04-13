@@ -1,0 +1,6 @@
+theme {
+  accent: "green"
+  # trailing comment A
+  # trailing comment B
+  # trailing comment C
+}

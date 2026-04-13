@@ -1,0 +1,9 @@
+# file leading comment
+theme {
+  # leading comment on accent
+  accent: "green" # inline trailing on accent
+  # leading comment on background
+  background: "#000"
+  # trailing comment on the block
+}
+# file trailing comment
