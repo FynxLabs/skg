@@ -1,4 +1,4 @@
-/// SKG conformance tests — validates the Zig parser against shared testdata/ fixtures.
+/// SKG conformance tests - validates the Zig parser against shared testdata/ fixtures.
 ///
 /// Each valid fixture is a .skg file with a .expected.json file describing the expected AST.
 /// Each invalid fixture is a .skg file that should fail to parse, with a .expected.json

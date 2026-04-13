@@ -300,8 +300,8 @@ func TestUnmarshal(t *testing.T) {
 		Size   int64  `skg:"size"`
 	}
 	type Config struct {
-		Name  string  `skg:"name"`
-		Theme Theme   `skg:"theme"`
+		Name  string   `skg:"name"`
+		Theme Theme    `skg:"theme"`
 		Tags  []string `skg:"tags"`
 	}
 
@@ -395,7 +395,7 @@ func TestMarshalNested(t *testing.T) {
 }
 
 func TestUnmarshalMapStringSlice(t *testing.T) {
-	// map[string][]string — field keys are map keys, arrays are values
+	// map[string][]string - field keys are map keys, arrays are values
 	type Config struct {
 		Addons map[string][]string `skg:"addons"`
 	}
@@ -421,7 +421,7 @@ addons {
 }
 
 func TestUnmarshalMapStringString(t *testing.T) {
-	// map[string]string — flat key-value pairs
+	// map[string]string - flat key-value pairs
 	type Config struct {
 		Env map[string]string `skg:"env"`
 	}
@@ -444,7 +444,7 @@ env {
 }
 
 func TestUnmarshalMapStringAny(t *testing.T) {
-	// map[string]interface{} — the Extra bag pattern
+	// map[string]interface{} - the Extra bag pattern
 	type Config struct {
 		Extra map[string]interface{} `skg:"extra"`
 	}
@@ -479,7 +479,7 @@ extra {
 }
 
 func TestUnmarshalMapStruct(t *testing.T) {
-	// map[string]struct — block names are map keys, children decode into struct
+	// map[string]struct - block names are map keys, children decode into struct
 	type Disk struct {
 		Device string `skg:"device"`
 		FS     string `skg:"fs"`

@@ -1,7 +1,7 @@
-# app.skg — example application config
+# app.skg - example application config
 #
 # SKG is typed, hierarchical, and comment-friendly.
-# Your Go/Zig structs ARE the schema — if the struct has the field,
+# Your Go/Zig structs ARE the schema - if the struct has the field,
 # it gets populated. Extra fields in the config are silently ignored.
 # Missing fields keep their zero value.
 
@@ -28,7 +28,7 @@ logging {
   max_size_mb: 10
   keep_rotations: 5
 
-  # Nested blocks work too — no depth limit
+  # Nested blocks work too - no depth limit
   streams {
     stdout: true
     file: true
@@ -47,7 +47,7 @@ packages {
   dev: ["git", "gcc", "make"]
 }
 
-# map[string]interface{} — the "extra bag" pattern for arbitrary key-value pairs
+# map[string]interface{} - the "extra bag" pattern for arbitrary key-value pairs
 extra {
   retries: 3
   region: "us-west-2"

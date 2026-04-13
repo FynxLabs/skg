@@ -58,6 +58,6 @@
 ## 10. Integration
 
 - [x] 10.1 Add comment round-trip conformance test cases to `testdata/valid/`
-- [x] 10.2 Run `zig build test` — all tests pass
-- [ ] 10.3 Run `go test ./...` — all tests pass (blocked on Go implementation)
+- [x] 10.2 Run `zig build test` - all tests pass
+- [ ] 10.3 Run `go test ./...` - all tests pass (blocked on Go implementation)
 - [x] 10.4 Verify `skg fmt --check` works on test .skg files

@@ -1,7 +1,7 @@
 # parser Specification
 
 ## Purpose
-Specifies the SKG configuration language parser — a self-contained lexer, parser, and AST layer with zero external dependencies beyond Zig's standard library. SKG (Static Key Group) is a simple hierarchical key-value format with nested blocks, supporting string, integer, float, and boolean values. The parser also supports merging multiple config files with override semantics.
+Specifies the SKG configuration language parser - a self-contained lexer, parser, and AST layer with zero external dependencies beyond Zig's standard library. SKG (Static Key Group) is a simple hierarchical key-value format with nested blocks, supporting string, integer, float, and boolean values. The parser also supports merging multiple config files with override semantics.
 ## Requirements
 ### Requirement: Lexical analysis
 The SKG parser SHALL tokenize input into: identifiers, string literals, multiline string literals, numeric literals, boolean literals, null literals, colons, braces, comments, and newlines. Comment tokens SHALL be emitted for `#` lines instead of being discarded.
@@ -27,7 +27,7 @@ The SKG parser SHALL tokenize input into: identifiers, string literals, multilin
 - **THEN** lexer produces a comment token with text `# this is a comment`
 
 ### Requirement: Parsing into AST
-The SKG parser SHALL parse token streams into an AST of nodes containing key-value pairs and nested blocks. Duplicate fields within a single file SHALL be resolved with last-wins semantics — the second occurrence replaces the first in the AST. Comment tokens SHALL be collected and attached to adjacent nodes as trivia.
+The SKG parser SHALL parse token streams into an AST of nodes containing key-value pairs and nested blocks. Duplicate fields within a single file SHALL be resolved with last-wins semantics - the second occurrence replaces the first in the AST. Comment tokens SHALL be collected and attached to adjacent nodes as trivia.
 
 #### Scenario: Hierarchical config
 - **WHEN** input contains nested blocks with key-value pairs
@@ -53,7 +53,7 @@ The SKG parser SHALL support merging multiple parsed config files, with later va
 - **THEN** the merged result contains the value from the later config
 
 ### Requirement: No external dependencies
-The SKG parser SHALL depend only on Zig's standard library and its own internal modules. SKG is project-agnostic — no consuming application code may be imported.
+The SKG parser SHALL depend only on Zig's standard library and its own internal modules. SKG is project-agnostic - no consuming application code may be imported.
 
 #### Scenario: Clean import graph
 - **WHEN** examining the import graph of `zig/*.zig` (excluding tests)

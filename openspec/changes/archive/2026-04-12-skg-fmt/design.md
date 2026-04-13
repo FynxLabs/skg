@@ -1,6 +1,6 @@
 ## Context
 
-SKG has a working parser and emitter, but comments are discarded at lex time. A formatter that drops comments is useless for real config files. The goal is comment-preserving `skg fmt` — same UX as `zig fmt` or `gofmt`.
+SKG has a working parser and emitter, but comments are discarded at lex time. A formatter that drops comments is useless for real config files. The goal is comment-preserving `skg fmt` - same UX as `zig fmt` or `gofmt`.
 
 ## Goals / Non-Goals
 
@@ -27,21 +27,21 @@ Add a `comment` tag to `token.zig`/`Tag`. The lexer emits comment tokens instead
 
 ### Comment attachment model
 
-Comments attach to AST nodes as trivia slices. Each node type (Field, Block, BlockArray) gains a `leading_comments: [][]const u8` field — an array of comment text lines that appeared immediately before the node (no blank line separating them from the node).
+Comments attach to AST nodes as trivia slices. Each node type (Field, Block, BlockArray) gains a `leading_comments: [][]const u8` field - an array of comment text lines that appeared immediately before the node (no blank line separating them from the node).
 
 File-level gets `leading_comments` (comments before the first node) and `trailing_comments` (comments after the last node).
 
 Inline trailing comments (e.g., `key: "value" # explanation`) attach as `trailing_comment: ?[]const u8` on Field.
 
-**Rationale:** This is the simplest model that handles real-world SKG files. The theme files in design-guidelines use comments as section headers (leading) and field explanations (trailing inline). Block-level trailing comments (comments at the end of a block before `}`) attach as leading comments on the closing brace — handled by adding `trailing_comments: [][]const u8` to Block and BlockArray.
+**Rationale:** This is the simplest model that handles real-world SKG files. The theme files in design-guidelines use comments as section headers (leading) and field explanations (trailing inline). Block-level trailing comments (comments at the end of a block before `}`) attach as leading comments on the closing brace - handled by adding `trailing_comments: [][]const u8` to Block and BlockArray.
 
-**Alternative considered:** Storing comments as standalone AST nodes interleaved with content nodes. Rejected — makes the emitter more complex and every AST consumer has to handle comment nodes. Trivia attachment keeps comments out of the way for consumers that don't care.
+**Alternative considered:** Storing comments as standalone AST nodes interleaved with content nodes. Rejected - makes the emitter more complex and every AST consumer has to handle comment nodes. Trivia attachment keeps comments out of the way for consumers that don't care.
 
 ### Parser changes
 
 The parser collects comment tokens into a temporary buffer. When it encounters a non-comment token, it attaches the buffered comments as `leading_comments` on the next node. For inline trailing comments, after parsing a field value the parser checks if the next token on the same line is a comment.
 
-Blank lines between comment groups start a new group — a blank line followed by comments attaches to the next node, not the previous one.
+Blank lines between comment groups start a new group - a blank line followed by comments attaches to the next node, not the previous one.
 
 ### Emitter changes
 
@@ -61,6 +61,6 @@ Go gets the same comment preservation changes (lexer, AST, parser, emitter) but 
 
 ## Risks / Trade-offs
 
-- **[Low] Comment attachment ambiguity** — When a blank line separates two comment blocks, the split point determines which node owns which comments. The rule (comments attach to the next node) matches the convention in Go, Rust, and most languages. Edge case: a comment at the very end of a file with no following node goes to `File.trailing_comments`.
-- **[Low] Performance** — Comment tokens add to the token stream size. For SKG files (typically under 200 lines), this is negligible.
-- **[None] Backward compatibility** — Existing AST consumers see zero-length trivia slices by default. No breaking changes to the parse or emit public interface signatures.
+- **[Low] Comment attachment ambiguity** - When a blank line separates two comment blocks, the split point determines which node owns which comments. The rule (comments attach to the next node) matches the convention in Go, Rust, and most languages. Edge case: a comment at the very end of a file with no following node goes to `File.trailing_comments`.
+- **[Low] Performance** - Comment tokens add to the token stream size. For SKG files (typically under 200 lines), this is negligible.
+- **[None] Backward compatibility** - Existing AST consumers see zero-length trivia slices by default. No breaking changes to the parse or emit public interface signatures.

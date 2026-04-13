@@ -41,7 +41,7 @@ theme {
 }
 ```
 
-Files must be UTF-8. No byte-order mark. Line endings are LF (`\n`). The parser treats `\r` as whitespace — CRLF files will parse correctly, but `\r` is stripped on round-trip through the formatter.
+Files must be UTF-8. No byte-order mark. Line endings are LF (`\n`). The parser treats `\r` as whitespace - CRLF files will parse correctly, but `\r` is stripped on round-trip through the formatter.
 
 ---
 
@@ -59,12 +59,12 @@ accent: "green"  # This is also a comment
 Comments attach to AST nodes as trivia using these rules:
 
 1. A comment on the same line as a field value attaches as that field's **trailing comment**.
-2. Comments between the last child and a closing `}` or `]` attach as **trailing comments** on the enclosing block or block array. This takes precedence over rule 3 — if there is no next node before the closing delimiter, the comment belongs to the block, not to a nonexistent next node.
+2. Comments between the last child and a closing `}` or `]` attach as **trailing comments** on the enclosing block or block array. This takes precedence over rule 3 - if there is no next node before the closing delimiter, the comment belongs to the block, not to a nonexistent next node.
 3. A comment on its own line attaches as a **leading comment** on the next node.
 4. Comments at the very top of a file (before any declaration) are **file leading comments**.
 5. Comments at the very bottom of a file (after all nodes) are **file trailing comments**.
 
-Multiple consecutive comments follow the same rules — they all attach to the same target. Three comments before a field are all leading comments on that field. Three comments before a `}` are all trailing comments on the block.
+Multiple consecutive comments follow the same rules - they all attach to the same target. Three comments before a field are all leading comments on that field. Three comments before a `}` are all trailing comments on the block.
 
 ```
 # leading comment on the field
@@ -174,7 +174,7 @@ The literal `null` represents an absent value. No quotes.
 background: null
 ```
 
-Null is useful for explicitly unsetting an inherited value from an import. Null is not a valid array element — it is its own type and arrays require uniform types.
+Null is useful for explicitly unsetting an inherited value from an import. Null is not a valid array element - it is its own type and arrays require uniform types.
 
 ### String
 
@@ -199,7 +199,7 @@ Single quotes are not valid. Escape sequences within strings:
 
 ### Multiline Strings
 
-Triple-quoted strings (`"""..."""`) span multiple lines. No escape processing is performed inside triple-quoted strings — the content between the delimiters is taken literally, including leading whitespace on continuation lines.
+Triple-quoted strings (`"""..."""`) span multiple lines. No escape processing is performed inside triple-quoted strings - the content between the delimiters is taken literally, including leading whitespace on continuation lines.
 
 ```
 description: """This is a
@@ -216,7 +216,7 @@ theme {
 }
 ```
 
-In this example, "line two" is preceded by two spaces. There is no automatic indentation stripping — literal means literal.
+In this example, "line two" is preceded by two spaces. There is no automatic indentation stripping - literal means literal.
 
 ### Array
 
@@ -231,16 +231,16 @@ sizes: [8.0, 12.0, 16.0]
 Type uniformity is checked one level deep: every element in an array must have the same type tag. For nested arrays, the outer array requires all elements to be arrays, but inner arrays may have different element types:
 
 ```
-# valid — outer elements are both arrays
+# valid - outer elements are both arrays
 matrix: [[1, 2], [3, 4]]
 
-# also valid — outer elements are both arrays, inner types differ
+# also valid - outer elements are both arrays, inner types differ
 mixed: [[1, 2], ["a", "b"]]
 
-# invalid — outer elements are mixed (int and string)
+# invalid - outer elements are mixed (int and string)
 bad: [1, "two", 3]
 
-# invalid — null is its own type, cannot mix with others
+# invalid - null is its own type, cannot mix with others
 also_bad: [1, null, 3]
 ```
 
@@ -300,9 +300,9 @@ users [
 ]
 ```
 
-Each `{ }` entry in the array is an independent block with its own fields and nested blocks. Entries are ordered — position is significant. Commas between entries are optional.
+Each `{ }` entry in the array is an independent block with its own fields and nested blocks. Entries are ordered - position is significant. Commas between entries are optional.
 
-Block arrays are the way to represent ordered collections of structured items — panels, zones, users, rules, etc.
+Block arrays are the way to represent ordered collections of structured items - panels, zones, users, rules, etc.
 
 Block arrays may be empty:
 
@@ -310,7 +310,7 @@ Block arrays may be empty:
 panels []
 ```
 
-When merging (via imports), a block array replaces the entire previous value — items are not merged individually.
+When merging (via imports), a block array replaces the entire previous value - items are not merged individually.
 
 Block arrays are distinct from scalar arrays (`[1, 2, 3]`). Scalar arrays appear as field values after a colon. Block arrays appear after an identifier without a colon, just like blocks.
 
@@ -358,7 +358,7 @@ If omitted, the parser accepts the file without a version check.
 
 ## Schema Version
 
-`schema_version` declares which version of the consuming application's config schema this file targets. It is a string. The parser records it on the AST (`File.schema_version`) but does not interpret it — validation is the consuming application's responsibility.
+`schema_version` declares which version of the consuming application's config schema this file targets. It is a string. The parser records it on the AST (`File.schema_version`) but does not interpret it - validation is the consuming application's responsibility.
 
 ```
 schema_version: "1.0.0"
@@ -441,7 +441,7 @@ theme {
   }
 }
 
-# panels are ordered — first entry is primary
+# panels are ordered - first entry is primary
 panels [
   {
     position: "top"

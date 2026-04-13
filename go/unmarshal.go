@@ -166,7 +166,7 @@ func decodeValue(val Value, target reflect.Value) error {
 		target = target.Elem()
 	}
 
-	// Handle interface{} / any — decode into native Go types
+	// Handle interface{} / any - decode into native Go types
 	if target.Kind() == reflect.Interface {
 		target.Set(reflect.ValueOf(valueToAny(val)))
 		return nil

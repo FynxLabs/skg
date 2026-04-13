@@ -113,7 +113,7 @@ const Parser = struct {
         if (tok.tag == .comment and tok.line == line) {
             return tok.text;
         }
-        // Not a trailing comment — save it as peeked (or buffer if comment on different line)
+        // Not a trailing comment - save it as peeked (or buffer if comment on different line)
         if (tok.tag == .comment) {
             try self.comment_buf.append(self.allocator, tok.text);
         } else {
@@ -265,7 +265,7 @@ const Parser = struct {
     }
 
     /// Parse a single node (field or block). Expects an ident token next.
-    /// Leading comments are already buffered by the time we get here —
+    /// Leading comments are already buffered by the time we get here -
     /// drain them before consuming the identifier.
     fn parseNode(self: *Parser) ParseError!ast.Node {
         const leading = try self.drainComments();
@@ -340,7 +340,7 @@ const Parser = struct {
                 return error.ExpectedRbracket;
             }
             if (t.tag != .lbrace) {
-                // Not a block array — fall back to scalar array field
+                // Not a block array - fall back to scalar array field
                 return self.reParseAsFieldArray(name_tok, leading);
             }
             _ = try self.consume(); // consume '{'

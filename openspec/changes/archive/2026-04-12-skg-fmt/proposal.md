@@ -24,15 +24,15 @@ SKG files have no canonical formatting tool. Comments are discarded at lex time,
 
 ## Impact
 
-- `zig/token.zig` — new `comment` tag
-- `zig/lexer.zig` — emit comment tokens instead of discarding them
-- `zig/ast.zig` — comment trivia fields on Field, Block, BlockArray, File
-- `zig/parser.zig` — collect and attach comments to nodes
-- `zig/emit.zig` — replay comment trivia during serialization
-- `zig/main.zig` — new file, CLI entry point
-- `go/lexer.go` — same comment token changes
-- `go/ast.go` — same trivia fields
-- `go/parser.go` — same attachment logic
-- `go/emit.go` — same replay logic
-- `build.zig` — add CLI executable target
-- Existing tests — update to account for comment round-tripping
+- `zig/token.zig` - new `comment` tag
+- `zig/lexer.zig` - emit comment tokens instead of discarding them
+- `zig/ast.zig` - comment trivia fields on Field, Block, BlockArray, File
+- `zig/parser.zig` - collect and attach comments to nodes
+- `zig/emit.zig` - replay comment trivia during serialization
+- `zig/main.zig` - new file, CLI entry point
+- `go/lexer.go` - same comment token changes
+- `go/ast.go` - same trivia fields
+- `go/parser.go` - same attachment logic
+- `go/emit.go` - same replay logic
+- `build.zig` - add CLI executable target
+- Existing tests - update to account for comment round-tripping

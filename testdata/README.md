@@ -5,8 +5,8 @@ Every parser implementation must pass all fixtures.
 
 ## Structure
 
-- `valid/` — Valid `.skg` files with paired `.expected.json` describing the expected AST
-- `invalid/` — Invalid `.skg` files with paired `.expected.json` describing the expected error
+- `valid/` - Valid `.skg` files with paired `.expected.json` describing the expected AST
+- `invalid/` - Invalid `.skg` files with paired `.expected.json` describing the expected error
 
 ## Expected JSON Format
 
@@ -33,12 +33,12 @@ Every parser implementation must pass all fixtures.
 ```
 
 Value types in JSON:
-- `{"type": "string", "data": "hello"}` — string
-- `{"type": "int", "data": 42}` — integer
-- `{"type": "float", "data": 1.5}` — float
-- `{"type": "bool", "data": true}` — boolean
-- `{"type": "null"}` — null
-- `{"type": "array", "element_type": "string", "data": [...]}` — array (items are value objects)
+- `{"type": "string", "data": "hello"}` - string
+- `{"type": "int", "data": 42}` - integer
+- `{"type": "float", "data": 1.5}` - float
+- `{"type": "bool", "data": true}` - boolean
+- `{"type": "null"}` - null
+- `{"type": "array", "element_type": "string", "data": [...]}` - array (items are value objects)
 
 Null fields (`skg_version`, `schema_version`) are omitted or set to `null` in JSON.
 

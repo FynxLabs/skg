@@ -24,7 +24,7 @@ The SKG parser SHALL tokenize input into: identifiers, string literals, multilin
 - **THEN** lexer produces a comment token with text `# this is a comment`
 
 ### Requirement: Parsing into AST
-The SKG parser SHALL parse token streams into an AST of nodes containing key-value pairs and nested blocks. Duplicate fields within a single file SHALL be resolved with last-wins semantics — the second occurrence replaces the first in the AST. Comment tokens SHALL be collected and attached to adjacent nodes as trivia.
+The SKG parser SHALL parse token streams into an AST of nodes containing key-value pairs and nested blocks. Duplicate fields within a single file SHALL be resolved with last-wins semantics - the second occurrence replaces the first in the AST. Comment tokens SHALL be collected and attached to adjacent nodes as trivia.
 
 #### Scenario: Hierarchical config
 - **WHEN** input contains nested blocks with key-value pairs

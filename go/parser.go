@@ -285,7 +285,7 @@ func (p *parser) parseBlockArray(nameTok token) (Node, error) {
 			return Node{}, &ParseError{Diag: Diagnostic{Path: p.path, Line: t.line, Col: t.col, Message: "unterminated block array, expected ']'"}}
 		}
 		if t.tag != tokLBrace {
-			// Not a block array — this is a regular field with array value.
+			// Not a block array - this is a regular field with array value.
 			// Re-parse as: name: [items...]
 			// We've already consumed '[', so parse the remaining array elements.
 			return p.reParseAsFieldArray(nameTok, t)
@@ -318,7 +318,7 @@ func (p *parser) parseBlockArray(nameTok token) (Node, error) {
 
 // reParseAsFieldArray handles the case where `name [` was followed by a scalar
 // value instead of `{`, meaning it's actually `name: [values...]` without a colon.
-// Wait — SKG requires colons for fields. So `name [` with non-brace content is an error.
+// Wait - SKG requires colons for fields. So `name [` with non-brace content is an error.
 // But to keep the parser friendly, we parse it as a regular array and return it as a field.
 func (p *parser) reParseAsFieldArray(nameTok token, firstTok token) (Node, error) {
 	// Parse remaining array contents starting from firstTok (already peeked).

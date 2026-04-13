@@ -1,6 +1,6 @@
 // Example: loading an SKG config in Zig.
 //
-// In Zig, your struct IS still the schema — you define what your app
+// In Zig, your struct IS still the schema - you define what your app
 // cares about, then walk the parsed AST to populate it. There's no
 // runtime reflection or struct tags, so you write a small walker that
 // maps keys to fields. This is explicit, zero-allocation (on an arena),
@@ -52,7 +52,7 @@ const Config = struct {
 //
 // This is the Zig equivalent of Go's `skg:"name"` struct tags.
 // You pattern-match on field keys and block names. It's more code than
-// tags, but it's explicit — you see exactly what gets populated and can
+// tags, but it's explicit - you see exactly what gets populated and can
 // add validation inline.
 
 fn walkConfig(nodes: []const skg.ast.Node) Config {
@@ -69,7 +69,7 @@ fn walkConfig(nodes: []const skg.ast.Node) Config {
                 } else if (std.mem.eql(u8, f.key, "motd")) {
                     cfg.motd = f.value.string;
                 }
-                // extra keys silently ignored — struct defines the schema
+                // extra keys silently ignored - struct defines the schema
             },
             .block => |b| {
                 if (std.mem.eql(u8, b.name, "database")) {

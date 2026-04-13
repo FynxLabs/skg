@@ -102,8 +102,8 @@ type Node struct {
 
 // File is the parsed representation of a single .skg file.
 type File struct {
-	SKGVersion    *string  // skg_version: "1.0" — nil if absent
-	SchemaVersion *string  // schema_version: "1.0.0" — nil if absent
+	SKGVersion    *string  // skg_version: "1.0" - nil if absent
+	SchemaVersion *string  // schema_version: "1.0.0" - nil if absent
 	ImportPaths   []string // Raw import path strings
 	Children      []Node
 }

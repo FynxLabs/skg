@@ -1,7 +1,7 @@
 # skg-cli Specification
 
 ## Purpose
-Define the `skg` CLI binary — a formatting tool for `.skg` files, designed for editor integration and CI pipelines.
+Define the `skg` CLI binary - a formatting tool for `.skg` files, designed for editor integration and CI pipelines.
 ## Requirements
 ### Requirement: skg fmt reformats files to canonical style
 The `skg fmt` command SHALL read one or more `.skg` files, parse them, and write canonical formatting back to the same files. Canonical formatting uses 2-space indentation, consistent spacing around colons and braces, one blank line between top-level blocks, and a trailing newline.

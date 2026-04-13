@@ -2,10 +2,11 @@
 //
 // Your structs ARE the schema. The `skg:"name"` tag maps config keys
 // to struct fields. Nested structs map to blocks. Slices map to arrays.
-// Pointer fields are nullable — null in the config leaves them nil.
+// Pointer fields are nullable - null in the config leaves them nil.
 //
 // Run:
-//   cd examples/go && go run main.go
+//
+//	cd examples/go && go run main.go
 package main
 
 import (
@@ -19,7 +20,7 @@ import (
 //
 // Every field you want from the config needs a `skg:"key"` tag.
 // Fields without tags are ignored. Extra keys in the config are ignored.
-// This means your struct defines exactly what your app cares about —
+// This means your struct defines exactly what your app cares about -
 // the config can have more, and your code won't break.
 
 type Config struct {
@@ -27,12 +28,12 @@ type Config struct {
 	Port         int64                  `skg:"port"`
 	Debug        bool                   `skg:"debug"`
 	AllowedHosts []string               `skg:"allowed_hosts"`
-	CacheTTL     *int64                 `skg:"cache_ttl"`  // pointer = nullable (null → nil)
+	CacheTTL     *int64                 `skg:"cache_ttl"` // pointer = nullable (null → nil)
 	Motd         string                 `skg:"motd"`
-	Database     Database               `skg:"database"`   // nested struct = block
+	Database     Database               `skg:"database"` // nested struct = block
 	Logging      Logging                `skg:"logging"`
-	Packages     map[string][]string    `skg:"packages"`   // map = block with dynamic keys
-	Extra        map[string]interface{} `skg:"extra"`      // map[string]any = arbitrary k/v bag
+	Packages     map[string][]string    `skg:"packages"` // map = block with dynamic keys
+	Extra        map[string]interface{} `skg:"extra"`    // map[string]any = arbitrary k/v bag
 }
 
 type Database struct {

@@ -99,7 +99,7 @@ go test ./...
 skg/
   zig/        # Zig implementation (lexer, parser, ast, merge, emit)
   go/         # Go implementation (lexer, parser, ast, merge, emit, unmarshal, marshal)
-  testdata/   # Shared conformance fixtures — the contract between implementations
+  testdata/   # Shared conformance fixtures - the contract between implementations
   examples/   # Working examples for each language
   docs/       # Language spec
 ```
