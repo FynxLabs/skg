@@ -1,6 +1,6 @@
 # SKG
 
-**Static Key Graph** - a simple, hierarchical configuration language with native parsers in Zig and Go.
+**Static Key Group** - a simple, hierarchical configuration language with native parsers in Zig and Go.
 
 SKG is human-readable, unambiguous, and has one way to write each construct.
 It is structured data - no variables, no templates, no expressions, no computation.

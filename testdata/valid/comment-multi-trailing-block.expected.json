@@ -1,0 +1,14 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    {
+      "type": "block",
+      "name": "theme",
+      "children": [
+        { "type": "field", "key": "accent", "value": { "type": "string", "data": "green" } }
+      ]
+    }
+  ]
+}

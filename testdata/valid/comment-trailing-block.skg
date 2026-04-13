@@ -1,0 +1,4 @@
+theme {
+  accent: "green"
+  # trailing comment on the block
+}

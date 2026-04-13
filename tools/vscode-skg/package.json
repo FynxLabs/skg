@@ -1,7 +1,7 @@
 {
   "name": "vscode-skg",
   "displayName": "SKG Config",
-  "description": "Syntax highlighting for .skg (Static Key Graph) configuration files used by Dusk",
+  "description": "Syntax highlighting for .skg (Static Key Group) configuration files used by Dusk",
   "version": "0.1.0",
   "publisher": "fynxlabs",
   "license": "Apache-2.0",

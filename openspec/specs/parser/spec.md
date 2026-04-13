@@ -1,7 +1,7 @@
 # parser Specification
 
 ## Purpose
-Specifies the SKG configuration language parser — a self-contained lexer, parser, and AST layer with zero external dependencies beyond Zig's standard library. SKG (Static Key Graph) is a simple hierarchical key-value format with nested blocks, supporting string, integer, float, and boolean values. The parser also supports merging multiple config files with override semantics.
+Specifies the SKG configuration language parser — a self-contained lexer, parser, and AST layer with zero external dependencies beyond Zig's standard library. SKG (Static Key Group) is a simple hierarchical key-value format with nested blocks, supporting string, integer, float, and boolean values. The parser also supports merging multiple config files with override semantics.
 ## Requirements
 ### Requirement: Lexical analysis
 The SKG parser SHALL tokenize input into: identifiers, string literals, multiline string literals, numeric literals, boolean literals, null literals, colons, braces, comments, and newlines. Comment tokens SHALL be emitted for `#` lines instead of being discarded.

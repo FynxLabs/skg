@@ -1,4 +1,4 @@
-/// Tree-sitter grammar for the SKG (Static Key Graph) config format.
+/// Tree-sitter grammar for the SKG (Static Key Group) config format.
 ///
 /// Build:      npm install && npx tree-sitter generate
 /// Test:       npx tree-sitter test

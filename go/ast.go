@@ -1,4 +1,4 @@
-// Package skg implements a parser for the SKG (Static Key Graph) configuration language.
+// Package skg implements a parser for the SKG (Static Key Group) configuration language.
 //
 // SKG is a simple hierarchical key-value format with nested blocks, typed values,
 // and import support. It fills the gap between JSON (no comments), YAML (whitespace-sensitive),
@@ -53,11 +53,11 @@ type Value struct {
 	Type ValueType
 
 	// Exactly one of these is populated based on Type.
-	Str     string  // TypeString
-	Int     int64   // TypeInt
-	Float   float64 // TypeFloat
-	Bool    bool    // TypeBool
-	Array   *Array  // TypeArray
+	Str   string  // TypeString
+	Int   int64   // TypeInt
+	Float float64 // TypeFloat
+	Bool  bool    // TypeBool
+	Array *Array  // TypeArray
 	// TypeNull uses no fields.
 }
 
