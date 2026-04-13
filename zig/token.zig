@@ -14,6 +14,7 @@ pub const Tag = enum {
     lbracket, // [
     rbracket, // ]
     comma, // ,
+    comment, // # ...
     eof,
 };
 

@@ -36,6 +36,8 @@ pub const Field = struct {
     value: Value,
     line: u32,
     col: u32,
+    leading_comments: []const []const u8 = &.{},
+    trailing_comment: ?[]const u8 = null,
 };
 
 /// A named scope: `name { children... }`
@@ -44,6 +46,8 @@ pub const Block = struct {
     children: []Node,
     line: u32,
     col: u32,
+    leading_comments: []const []const u8 = &.{},
+    trailing_comments: []const []const u8 = &.{},
 };
 
 /// A named list of blocks: `name [ { ... } { ... } ]`
@@ -53,6 +57,8 @@ pub const BlockArray = struct {
     items: [][]Node,
     line: u32,
     col: u32,
+    leading_comments: []const []const u8 = &.{},
+    trailing_comments: []const []const u8 = &.{},
 };
 
 pub const Node = union(enum) {
@@ -74,4 +80,8 @@ pub const File = struct {
     children: []Node,
     /// File path this was parsed from (for error messages and import resolution).
     path: []const u8,
+    /// Comments before the first node (or before skg_version/imports).
+    leading_comments: []const []const u8 = &.{},
+    /// Comments after the last node.
+    trailing_comments: []const []const u8 = &.{},
 };

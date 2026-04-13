@@ -1,0 +1,62 @@
+version: 2
+
+report_sizes: true
+
+builds:
+  - id: build-x86_64
+    builder: zig
+    binary: skg
+    targets: [x86_64-linux-gnu]
+    flags:
+      - -Doptimize=ReleaseFast
+
+  - id: build-arm64
+    builder: zig
+    binary: skg
+    targets: [aarch64-linux-gnu]
+    flags:
+      - -Doptimize=ReleaseFast
+
+  - id: build-riscv64
+    builder: zig
+    binary: skg
+    targets: [riscv64-linux-gnu]
+    flags:
+      - -Doptimize=ReleaseFast
+
+archives:
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}aarch64
+      {{- else }}{{ .Arch }}{{ end -}}
+      _linux
+      {{- if index . "Abi" }}_{{ .Abi }}{{ end -}}
+    formats: ["tar.gz"]
+    builds_info:
+      group: root
+      owner: root
+
+checksum:
+  name_template: "checksums.txt"
+
+nfpms:
+  - id: packages
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    homepage: https://github.com/fynxlabs/skg
+    description: "SKG - Static Key Graph config language tools"
+    maintainer: "Levi Smith <levi@fynxlabs.io>"
+    license: MIT
+    vendor: FynxLabs
+    bindir: /usr/bin
+    section: utils
+    formats:
+      - apk
+      - deb
+      - rpm
+      - archlinux
+
+release:
+  name_template: "{{ .Tag }}"
+  prerelease: true
+  replace_existing_artifacts: true

@@ -49,15 +49,10 @@ pub const Lexer = struct {
         return c;
     }
 
-    fn skipWhitespaceAndComments(self: *Lexer) void {
+    fn skipWhitespace(self: *Lexer) void {
         while (self.pos < self.src.len) {
             const c = self.src[self.pos];
-            if (c == '#') {
-                // skip to end of line
-                while (self.pos < self.src.len and self.src[self.pos] != '\n') {
-                    self.pos += 1;
-                }
-            } else if (c == ' ' or c == '\t' or c == '\r' or c == '\n') {
+            if (c == ' ' or c == '\t' or c == '\r' or c == '\n') {
                 _ = self.advance();
             } else {
                 break;
@@ -66,8 +61,9 @@ pub const Lexer = struct {
     }
 
     /// Return the next token. Returns `.eof` at end of input.
+    /// Comment tokens are emitted for `#` lines (text includes `#` prefix, no trailing newline).
     pub fn next(self: *Lexer) LexError!Token {
-        self.skipWhitespaceAndComments();
+        self.skipWhitespace();
 
         if (self.pos >= self.src.len) {
             return Token{ .tag = .eof, .text = "", .line = self.line, .col = self.col };
@@ -107,6 +103,14 @@ pub const Lexer = struct {
                 const start = self.pos;
                 _ = self.advance();
                 return Token{ .tag = .comma, .text = self.src[start..self.pos], .line = tok_line, .col = tok_col };
+            },
+            '#' => {
+                const start = self.pos;
+                while (self.pos < self.src.len and self.src[self.pos] != '\n') {
+                    self.pos += 1;
+                    self.col += 1;
+                }
+                return Token{ .tag = .comment, .text = self.src[start..self.pos], .line = tok_line, .col = tok_col };
             },
             '"' => return self.lexString(tok_line, tok_col),
             '-' => return self.lexNegativeNumber(tok_line, tok_col),
