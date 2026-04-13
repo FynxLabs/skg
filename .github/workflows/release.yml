@@ -11,5 +11,4 @@ permissions:
 jobs:
   release:
     uses: fynxlabs/github-workflows/.github/workflows/zig-release.yml@master
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit
