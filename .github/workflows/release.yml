@@ -11,7 +11,5 @@ permissions:
 jobs:
   release:
     uses: fynxlabs/github-workflows/.github/workflows/zig-release.yml@master
-    with:
-      release-type: github-release
     secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

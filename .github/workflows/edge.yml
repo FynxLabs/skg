@@ -1,0 +1,15 @@
+name: Edge
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  edge:
+    uses: fynxlabs/github-workflows/.github/workflows/zig-edge.yml@master
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

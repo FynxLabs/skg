@@ -1,8 +1,5 @@
-# emit Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change parser-v02-improvements. Update Purpose after archive.
-## Requirements
 ### Requirement: AST to canonical SKG text
 The library SHALL provide an `emit` function that serializes an `ast.File` back to canonical SKG text, including all attached comment trivia.
 
@@ -25,11 +22,3 @@ The library SHALL provide an `emit` function that serializes an `ast.File` back 
 #### Scenario: Trailing inline comments emitted after fields
 - **WHEN** a field has a `trailing_comment` attached
 - **THEN** the comment is emitted on the same line as the field value, separated by a space
-
-### Requirement: Emit multiline strings
-The emit function SHALL serialize multiline string values using triple-quote syntax when the string contains newlines.
-
-#### Scenario: String with newlines emits as triple-quoted
-- **WHEN** a string value containing `\n` is emitted
-- **THEN** the output uses `"""` delimiters with the content on separate lines
-

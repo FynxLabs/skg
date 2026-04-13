@@ -34,6 +34,7 @@ const Parser = struct {
     peeked: ?Token,
     path: []const u8,
     last_diagnostic: ?ast_mod.Diagnostic = null,
+    comment_buf: std.ArrayListUnmanaged([]const u8) = .empty,
 
     fn init(allocator: Allocator, src: []const u8, path: []const u8) Parser {
         return .{
@@ -42,6 +43,7 @@ const Parser = struct {
             .peeked = null,
             .path = path,
             .last_diagnostic = null,
+            .comment_buf = .empty,
         };
     }
 
@@ -54,25 +56,7 @@ const Parser = struct {
         };
     }
 
-    fn peek(self: *Parser) ParseError!Token {
-        if (self.peeked == null) {
-            self.peeked = self.lexer.next() catch |err| {
-                self.setDiagnostic(self.lexer.line, self.lexer.col, switch (err) {
-                    error.UnexpectedChar => "unexpected character",
-                    error.UnterminatedString => "unterminated string literal",
-                    error.InvalidEscape => "invalid escape sequence",
-                });
-                return err;
-            };
-        }
-        return self.peeked.?;
-    }
-
-    fn consume(self: *Parser) ParseError!Token {
-        if (self.peeked) |t| {
-            self.peeked = null;
-            return t;
-        }
+    fn nextToken(self: *Parser) ParseError!Token {
         return self.lexer.next() catch |err| {
             self.setDiagnostic(self.lexer.line, self.lexer.col, switch (err) {
                 error.UnexpectedChar => "unexpected character",
@@ -81,6 +65,56 @@ const Parser = struct {
             });
             return err;
         };
+    }
+
+    /// Peek at the next non-comment token. Comments are buffered into comment_buf.
+    fn peek(self: *Parser) ParseError!Token {
+        if (self.peeked == null) {
+            var tok = try self.nextToken();
+            while (tok.tag == .comment) {
+                try self.comment_buf.append(self.allocator, tok.text);
+                tok = try self.nextToken();
+            }
+            self.peeked = tok;
+        }
+        return self.peeked.?;
+    }
+
+    fn consume(self: *Parser) ParseError!Token {
+        const t = try self.peek();
+        self.peeked = null;
+        return t;
+    }
+
+    /// Return buffered comments as an owned slice and clear the buffer.
+    fn drainComments(self: *Parser) ParseError![]const []const u8 {
+        if (self.comment_buf.items.len == 0) return &.{};
+        const slice = self.comment_buf.toOwnedSlice(self.allocator) catch return error.OutOfMemory;
+        return slice;
+    }
+
+    /// Check if the very next raw token (no skipping) is a comment on the given line.
+    /// If so, consume it and return its text. Otherwise leave it for normal peek flow.
+    fn tryTrailingComment(self: *Parser, line: u32) ParseError!?[]const u8 {
+        // If we already have a peeked non-comment token, check its line
+        if (self.peeked) |p| {
+            _ = p;
+            // peeked is a non-comment token; no trailing comment available
+            // (comments before this token are already in comment_buf)
+            return null;
+        }
+        // Peek at the raw next token without buffering comments
+        const tok = try self.nextToken();
+        if (tok.tag == .comment and tok.line == line) {
+            return tok.text;
+        }
+        // Not a trailing comment — save it as peeked (or buffer if comment on different line)
+        if (tok.tag == .comment) {
+            try self.comment_buf.append(self.allocator, tok.text);
+        } else {
+            self.peeked = tok;
+        }
+        return null;
     }
 
     fn expect(self: *Parser, tag: Tag) ParseError!Token {
@@ -105,6 +139,8 @@ const Parser = struct {
         var schema_version: ?[]const u8 = null;
         var import_paths: std.ArrayListUnmanaged([]const u8) = .empty;
         var children: std.ArrayListUnmanaged(ast.Node) = .empty;
+        var file_leading: []const []const u8 = &.{};
+        var captured_file_leading = false;
 
         while (true) {
             const t = try self.peek();
@@ -112,6 +148,13 @@ const Parser = struct {
 
             if (t.tag == .ident) {
                 if (std.mem.eql(u8, t.text, "skg_version")) {
+                    if (!captured_file_leading) {
+                        file_leading = try self.drainComments();
+                        captured_file_leading = true;
+                    } else {
+                        // Discard comments before header directives (they'll be lost)
+                        _ = try self.drainComments();
+                    }
                     _ = try self.consume();
                     _ = try self.expect(.colon);
                     const val_tok = try self.expect(.string);
@@ -123,6 +166,12 @@ const Parser = struct {
                     continue;
                 }
                 if (std.mem.eql(u8, t.text, "schema_version")) {
+                    if (!captured_file_leading) {
+                        file_leading = try self.drainComments();
+                        captured_file_leading = true;
+                    } else {
+                        _ = try self.drainComments();
+                    }
                     _ = try self.consume();
                     _ = try self.expect(.colon);
                     const val_tok = try self.expect(.string);
@@ -134,14 +183,34 @@ const Parser = struct {
                     continue;
                 }
                 if (std.mem.eql(u8, t.text, "import")) {
+                    if (!captured_file_leading) {
+                        file_leading = try self.drainComments();
+                        captured_file_leading = true;
+                    } else {
+                        _ = try self.drainComments();
+                    }
                     _ = try self.consume();
                     try self.parseImports(&import_paths);
                     continue;
                 }
             }
 
+            // First real node captures file-level leading comments if not yet done
+            if (!captured_file_leading) {
+                file_leading = try self.drainComments();
+                captured_file_leading = true;
+            }
+
             const node = try self.parseNode();
             try children.append(self.allocator, node);
+        }
+
+        // Any comments after the last node are file trailing comments
+        const file_trailing = try self.drainComments();
+
+        // If no nodes were parsed, file_leading captures everything before EOF
+        if (!captured_file_leading) {
+            file_leading = file_trailing;
         }
 
         const raw_children = try children.toOwnedSlice(self.allocator);
@@ -151,6 +220,8 @@ const Parser = struct {
             .import_paths = try import_paths.toOwnedSlice(self.allocator),
             .children = try dedup(self.allocator, raw_children),
             .path = self.path,
+            .leading_comments = file_leading,
+            .trailing_comments = if (!captured_file_leading) &.{} else file_trailing,
         };
     }
 
@@ -185,18 +256,24 @@ const Parser = struct {
     }
 
     /// Parse a single node (field or block). Expects an ident token next.
+    /// Leading comments are already buffered by the time we get here —
+    /// drain them before consuming the identifier.
     fn parseNode(self: *Parser) ParseError!ast.Node {
+        const leading = try self.drainComments();
         const name_tok = try self.expect(.ident);
         const nt = try self.peek();
 
         if (nt.tag == .colon) {
             _ = try self.consume();
             const value = try self.parseValue();
+            const trailing = try self.tryTrailingComment(name_tok.line);
             return ast.Node{ .field = .{
                 .key = name_tok.text,
                 .value = value,
                 .line = name_tok.line,
                 .col = name_tok.col,
+                .leading_comments = leading,
+                .trailing_comment = trailing,
             } };
         } else if (nt.tag == .lbrace) {
             _ = try self.consume();
@@ -204,7 +281,6 @@ const Parser = struct {
             while (true) {
                 const ct = try self.peek();
                 if (ct.tag == .rbrace) {
-                    _ = try self.consume();
                     break;
                 }
                 if (ct.tag == .eof) {
@@ -213,16 +289,21 @@ const Parser = struct {
                 }
                 try children.append(self.allocator, try self.parseNode());
             }
+            // Comments before '}' are trailing comments for the block
+            const block_trailing = try self.drainComments();
+            _ = try self.consume(); // consume '}'
             const raw = try children.toOwnedSlice(self.allocator);
             return ast.Node{ .block = .{
                 .name = name_tok.text,
                 .children = try dedup(self.allocator, raw),
                 .line = name_tok.line,
                 .col = name_tok.col,
+                .leading_comments = leading,
+                .trailing_comments = block_trailing,
             } };
         } else if (nt.tag == .lbracket) {
             _ = try self.consume();
-            return try self.parseBlockArray(name_tok);
+            return try self.parseBlockArray(name_tok, leading);
         } else {
             self.setDiagnostic(nt.line, nt.col, "expected ':', '{', or '[' after identifier");
             return error.UnexpectedToken;
@@ -232,13 +313,13 @@ const Parser = struct {
     /// Parse block array entries. '[' already consumed.
     /// Expects `{ children }` blocks until `]`. If the first token after `[`
     /// is not `{`, falls back to parsing as a scalar array field (colonless shorthand).
-    fn parseBlockArray(self: *Parser, name_tok: Token) ParseError!ast.Node {
+    fn parseBlockArray(self: *Parser, name_tok: Token, leading: []const []const u8) ParseError!ast.Node {
         var items: std.ArrayListUnmanaged([]ast.Node) = .empty;
 
         while (true) {
+            // peek() buffers any comments before the next real token
             const t = try self.peek();
             if (t.tag == .rbracket) {
-                _ = try self.consume();
                 break;
             }
             if (t.tag == .comma) {
@@ -251,7 +332,7 @@ const Parser = struct {
             }
             if (t.tag != .lbrace) {
                 // Not a block array — fall back to scalar array field
-                return self.reParseAsFieldArray(name_tok);
+                return self.reParseAsFieldArray(name_tok, leading);
             }
             _ = try self.consume(); // consume '{'
             var children: std.ArrayListUnmanaged(ast.Node) = .empty;
@@ -270,17 +351,22 @@ const Parser = struct {
             const raw = try children.toOwnedSlice(self.allocator);
             try items.append(self.allocator, try dedup(self.allocator, raw));
         }
+        // Comments before ']' are trailing comments
+        const arr_trailing = try self.drainComments();
+        _ = try self.consume(); // consume ']'
         return ast.Node{ .block_array = .{
             .name = name_tok.text,
             .items = try items.toOwnedSlice(self.allocator),
             .line = name_tok.line,
             .col = name_tok.col,
+            .leading_comments = leading,
+            .trailing_comments = arr_trailing,
         } };
     }
 
     /// Fallback: `name [` was followed by a non-brace token, so parse
     /// remaining contents as a scalar array and return as a field node.
-    fn reParseAsFieldArray(self: *Parser, name_tok: Token) ParseError!ast.Node {
+    fn reParseAsFieldArray(self: *Parser, name_tok: Token, leading: []const []const u8) ParseError!ast.Node {
         var items: std.ArrayListUnmanaged(ast.Value) = .empty;
         var element_type: ?ast.ValueType = null;
 
@@ -320,6 +406,7 @@ const Parser = struct {
             } },
             .line = name_tok.line,
             .col = name_tok.col,
+            .leading_comments = leading,
         } };
     }
 

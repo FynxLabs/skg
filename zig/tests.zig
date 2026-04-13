@@ -64,8 +64,11 @@ test "lexer: string with escape" {
     , t.text);
 }
 
-test "lexer: skips comments" {
+test "lexer: emits comments" {
     var lex = Lexer.init("# comment\nkey: 1");
+    const c = try lex.next();
+    try testing.expectEqual(Tag.comment, c.tag);
+    try testing.expectEqualStrings("# comment", c.text);
     const t = try lex.next();
     try testing.expectEqual(Tag.ident, t.tag);
     try testing.expectEqualStrings("key", t.text);
