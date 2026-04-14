@@ -38,6 +38,13 @@ cd examples/go  && go run main.go
 cd examples/zig && zig build run
 ```
 
+More standalone `.skg` files under [examples/](examples/) show common
+real-world config patterns - a CI pipeline, feature flags with
+per-environment overrides, a backend pool with health checks, user
+accounts, an imports demo, and the kitchen-sink `app.skg`. Each file
+is standalone and parses clean; use them as references when picking up
+the language.
+
 ## Quick start
 
 ### Go
@@ -106,6 +113,13 @@ skg/
 
 Each language directory is a self-contained implementation with its own build
 tooling. Both are validated against the same `testdata/` fixtures.
+
+## Editor support
+
+- **[docs/tree-sitter.md](docs/tree-sitter.md)** - tree-sitter grammar for
+  Neovim, Helix, Zed, and anything else driven by tree-sitter
+- **[docs/vscode.md](docs/vscode.md)** - VS Code extension (TextMate
+  grammar + bracket/comment config)
 
 ## Language reference
 

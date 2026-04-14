@@ -46,3 +46,30 @@ description = "Remove build artifacts"
 [tasks.check]
 depends = ["lint", "test"]
 description = "Full check - lint + tests"
+
+[tasks."plugins:tree-sitter:generate"]
+run = "cd tools/tree-sitter-skg && npm install && npx tree-sitter generate"
+description = "Regenerate the tree-sitter parser from grammar.js"
+
+[tasks."plugins:tree-sitter:build"]
+depends = ["plugins:tree-sitter:generate"]
+run = "cd tools/tree-sitter-skg && npx tree-sitter build"
+description = "Build the native tree-sitter parser shared library"
+
+[tasks."plugins:tree-sitter:wasm"]
+depends = ["plugins:tree-sitter:generate"]
+run = "cd tools/tree-sitter-skg && npx tree-sitter build --wasm"
+description = "Build the WASM tree-sitter parser (for Zed, web editors)"
+
+[tasks."plugins:vscode:package"]
+run = "cd tools/vscode-skg && npm install && npx vsce package --out skg.vsix"
+description = "Package the VS Code extension as tools/vscode-skg/skg.vsix"
+
+[tasks."plugins:vscode:install"]
+depends = ["plugins:vscode:package"]
+run = "code --install-extension tools/vscode-skg/skg.vsix"
+description = "Build and install the VS Code extension into the local VS Code"
+
+[tasks."plugins:build"]
+depends = ["plugins:tree-sitter:build", "plugins:vscode:package"]
+description = "Build all editor plugins (tree-sitter native + vscode vsix)"

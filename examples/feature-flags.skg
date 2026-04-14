@@ -1,0 +1,51 @@
+# feature-flags.skg - dynamic keys, per-environment overrides
+#
+# Feature flags are the canonical use case for blocks with dynamic
+# keys. In Go this maps cleanly to `map[string]Flag`, in Zig you walk
+# the children and build a StringHashMap.
+#
+# The `environments` block is a map of maps: each environment name
+# holds a block of overrides. Values not overridden inherit from the
+# defaults block.
+
+defaults {
+  new_checkout_flow: false
+  dark_mode: true
+  sentry_sampling: 0.1
+  max_upload_mb: 25
+  experimental_search: false
+}
+
+environments {
+  development {
+    new_checkout_flow: true
+    experimental_search: true
+    sentry_sampling: 1.0
+  }
+
+  staging {
+    new_checkout_flow: true
+    experimental_search: true
+  }
+
+  production {
+    # Produces identical output to `{}`; an empty block is valid.
+    # Shown here to document intent ("prod takes all defaults").
+  }
+}
+
+# Audience rollouts - same shape for every flag name, but the set of
+# flag names is open-ended. Map of structured values.
+rollouts {
+  new_checkout_flow {
+    percent: 25
+    cohorts: ["beta", "internal"]
+    start: "2026-04-01"
+  }
+
+  experimental_search {
+    percent: 5
+    cohorts: ["internal"]
+    start: "2026-04-10"
+  }
+}

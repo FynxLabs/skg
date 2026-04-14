@@ -1,0 +1,27 @@
+# theme.skg - designed to be imported
+#
+# Split config into focused files. An import pulls this file in and
+# merges its top-level nodes with last-wins semantics.
+#
+# This file sets defaults; the importing file can override any value
+# by setting it again (including to null to unset).
+
+theme {
+  accent: "green"
+  radius: 4.0
+
+  colors {
+    background: "#0d0d0d"
+    surface: "#161616"
+    border: "#2a2a2a"
+    border_active: "#3a3a3a"
+    text: "#e5e5e5"
+    text_dim: "#6b6b6b"
+  }
+
+  font {
+    family: "JetBrains Mono"
+    size: 13.0
+    weight: 400
+  }
+}

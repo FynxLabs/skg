@@ -1,0 +1,32 @@
+# users.skg - block array of structured entries
+#
+# Use a block array when you need an ordered list of records with the
+# same shape. In Go this maps to []User; in Zig you walk the items
+# slice and build a []User yourself.
+#
+# Entries use `{ ... }` braces. Commas between entries are optional
+# (matching the one-way-to-do-it philosophy: either all commas or no
+# commas is fine, mixed is fine, linters may have opinions).
+
+users [
+  {
+    name: "admin"
+    sudo: true
+    shell: "/usr/bin/zsh"
+    groups: ["wheel", "video", "audio"]
+  }
+  {
+    name: "builder"
+    sudo: false
+    shell: "/usr/bin/bash"
+    groups: ["docker", "kvm"]
+  }
+  {
+    name: "guest"
+    sudo: false
+    shell: "/usr/bin/nologin"
+    groups: ["users"]
+    # null explicitly unsets a value that an import might have set
+    home: null
+  }
+]

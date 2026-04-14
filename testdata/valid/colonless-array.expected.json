@@ -1,0 +1,16 @@
+{
+  "skg_version": null,
+  "schema_version": null,
+  "imports": [],
+  "children": [
+    { "type": "field", "key": "tags", "value": { "type": "array", "element_type": "string", "data": [
+      { "type": "string", "data": "alpha" },
+      { "type": "string", "data": "beta" }
+    ] } },
+    { "type": "field", "key": "nums", "value": { "type": "array", "element_type": "int", "data": [
+      { "type": "int", "data": 1 },
+      { "type": "int", "data": 2 },
+      { "type": "int", "data": 3 }
+    ] } }
+  ]
+}

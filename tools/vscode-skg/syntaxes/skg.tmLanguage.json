@@ -5,6 +5,7 @@
   "fileTypes": ["skg"],
   "patterns": [
     { "include": "#comment" },
+    { "include": "#import" },
     { "include": "#block" },
     { "include": "#pair" },
     { "include": "#value" }
@@ -14,13 +15,40 @@
       "name": "comment.line.number-sign.skg",
       "match": "#.*$"
     },
+    "import": {
+      "match": "\\b(import)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.import.skg" }
+      }
+    },
+    "multiline_string": {
+      "name": "string.quoted.triple.skg",
+      "begin": "\"\"\"",
+      "end": "\"\"\"",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.skg" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.skg" }
+      }
+    },
     "string": {
       "name": "string.quoted.double.skg",
       "begin": "\"",
       "end": "\"",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.skg" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.skg" }
+      },
       "patterns": [
         {
           "name": "constant.character.escape.skg",
+          "match": "\\\\[\"\\\\nt]"
+        },
+        {
+          "name": "invalid.illegal.escape.skg",
           "match": "\\\\."
         }
       ]
@@ -40,6 +68,10 @@
     "boolean": {
       "name": "constant.language.boolean.skg",
       "match": "\\b(true|false)\\b"
+    },
+    "null": {
+      "name": "constant.language.null.skg",
+      "match": "\\bnull\\b"
     },
     "block": {
       "name": "meta.block.skg",
@@ -78,19 +110,42 @@
       },
       "patterns": [
         { "include": "#comment" },
+        { "include": "#block_array_item" },
+        { "include": "#multiline_string" },
         { "include": "#string" },
         { "include": "#boolean" },
+        { "include": "#null" },
         { "include": "#number" },
+        { "include": "#array" },
         {
           "name": "punctuation.separator.comma.skg",
           "match": ","
         }
       ]
     },
+    "block_array_item": {
+      "name": "meta.block-array-item.skg",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": { "name": "punctuation.section.block.begin.skg" }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": { "name": "punctuation.section.block.end.skg" }
+      },
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#block" },
+        { "include": "#pair" },
+        { "include": "#value" }
+      ]
+    },
     "value": {
       "patterns": [
+        { "include": "#multiline_string" },
         { "include": "#string" },
         { "include": "#boolean" },
+        { "include": "#null" },
         { "include": "#number" },
         { "include": "#array" }
       ]

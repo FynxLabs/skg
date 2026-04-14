@@ -1,0 +1,65 @@
+# servers.skg - a backend pool with health checks
+#
+# Shows off:
+#   - block array for an ordered list of backends
+#   - colonless scalar array shorthand (`labels ["a", "b"]`)
+#   - nested blocks (health_check)
+#   - mixed value types within a single block
+#   - null to explicitly mark an optional field absent
+#
+# This kind of config appears in load balancers, service meshes,
+# reverse proxies, and rack-manifest tooling.
+
+pool {
+  name: "api-backends"
+  algorithm: "round_robin"
+  max_retries: 2
+  connect_timeout_ms: 500
+}
+
+servers [
+  {
+    host: "10.0.1.10"
+    port: 8080
+    weight: 100
+    labels ["primary", "us-west"]
+
+    health_check {
+      path: "/healthz"
+      interval_s: 5
+      timeout_s: 2
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+    }
+  }
+  {
+    host: "10.0.1.11"
+    port: 8080
+    weight: 100
+    labels ["primary", "us-west"]
+
+    health_check {
+      path: "/healthz"
+      interval_s: 5
+      timeout_s: 2
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+    }
+  }
+  {
+    host: "10.0.2.20"
+    port: 8080
+    weight: 50
+    labels ["secondary", "us-east"]
+    # TLS is optional on this backend - null documents that explicitly
+    tls: null
+
+    health_check {
+      path: "/healthz"
+      interval_s: 10
+      timeout_s: 3
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+    }
+  }
+]

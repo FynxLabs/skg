@@ -1,0 +1,59 @@
+# ci-pipeline.skg - ordered stages with nested steps
+#
+# Block arrays (`name [ { ... } { ... } ]`) are the right shape for
+# anything ordered: CI stages, migration scripts, deployment steps.
+# Order matters and is preserved through parse → emit round-trips.
+#
+# Each stage is its own block with its own fields. Steps inside a
+# stage are themselves a block array, so the whole thing is two
+# levels deep.
+
+pipeline {
+  name: "release"
+  timeout_minutes: 30
+  fail_fast: true
+}
+
+stages [
+  {
+    name: "lint"
+    image: "alpine:3.19"
+    steps [
+      { run: "apk add --no-cache shellcheck" }
+      { run: "shellcheck scripts/*.sh" }
+    ]
+  }
+  {
+    name: "test"
+    image: "golang:1.23"
+    env {
+      CGO_ENABLED: "0"
+      GOFLAGS: "-mod=readonly"
+    }
+    steps [
+      { run: "go mod download" }
+      { run: "go test ./..." }
+      {
+        run: "go test -race ./..."
+        # Allow races to surface without failing the whole stage
+        allow_failure: true
+      }
+    ]
+  }
+  {
+    name: "build"
+    image: "golang:1.23"
+    artifacts: ["bin/app", "bin/app-debug"]
+    steps [
+      { run: "go build -o bin/app ./cmd/app" }
+      { run: "go build -gcflags=all='-N -l' -o bin/app-debug ./cmd/app" }
+    ]
+  }
+  {
+    name: "deploy"
+    image: "alpine:3.19"
+    when: "manual"
+    # An empty step list is valid - useful as a placeholder
+    steps []
+  }
+]

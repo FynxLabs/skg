@@ -7,20 +7,26 @@
 
 ; Block names  (panel_000 { ... } -> "panel_000" is entity.name)
 (block name: (identifier) @module)
+(block_array name: (identifier) @module)
 
 ; Keys  (key: value -> "key" is property)
 (pair key: (identifier) @variable.member)
+(scalar_array_field key: (identifier) @variable.member)
+
+; Imports
+"import" @keyword.import
 
 ; Strings
 (string) @string
-(escape_sequence) @string.escape
+(multiline_string) @string
 
 ; Numbers
 (float) @number.float
 (integer) @number
 
-; Booleans
+; Booleans / null
 (boolean) @boolean
+(null) @constant.builtin
 
 ; Punctuation
 ":" @punctuation.delimiter

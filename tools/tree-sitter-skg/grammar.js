@@ -17,23 +17,67 @@ module.exports = grammar({
     $.comment,
   ],
 
+  word: $ => $.identifier,
+
   rules: {
     // A document is zero or more top-level statements.
     document: $ => repeat($._statement),
 
     _statement: $ => choice(
+      $.import,
+      $.block_array,
+      $.scalar_array_field,
       $.block,
       $.pair,
     ),
 
+    // import "./foo.skg"   |   import [ "./a.skg", "./b.skg" ]
+    import: $ => seq(
+      'import',
+      choice(
+        $.string,
+        seq(
+          '[',
+          optional(seq(
+            $.string,
+            repeat(seq(',', $.string)),
+            optional(','),
+          )),
+          ']',
+        ),
+      ),
+    ),
+
     // block:  name { ... }
-    // Covers both named blocks (panel_000 { }) and anonymous blocks (panel { }).
     block: $ => seq(
       field('name', $.identifier),
       '{',
       repeat($._statement),
       '}',
     ),
+
+    // block_array:  name [ { ... } { ... } ]
+    // Distinguished from scalar_array_field by the first token inside [ ].
+    block_array: $ => prec(2, seq(
+      field('name', $.identifier),
+      '[',
+      repeat($.block_array_item),
+      ']',
+    )),
+
+    block_array_item: $ => seq(
+      '{',
+      repeat($._statement),
+      '}',
+      optional(','),
+    ),
+
+    // Colonless scalar array shorthand: `tags ["a", "b"]`
+    // Semantically equivalent to `tags: ["a", "b"]` per spec.
+    scalar_array_field: $ => prec(1, seq(
+      field('key', $.identifier),
+      field('value', $.array),
+    )),
 
     // pair:  key: value
     pair: $ => seq(
@@ -43,10 +87,12 @@ module.exports = grammar({
     ),
 
     _value: $ => choice(
+      $.multiline_string,
       $.string,
       $.float,
       $.integer,
       $.boolean,
+      $.null,
       $.array,
     ),
 
@@ -63,17 +109,28 @@ module.exports = grammar({
       ']',
     ),
 
-    // string:  "..." with escape sequences
-    string: $ => seq(
+    // Triple-quoted multiline string. No escape processing per spec -
+    // content is taken literally between the delimiters. Higher precedence
+    // than single-quoted string so the lexer prefers """...""".
+    multiline_string: $ => token(prec(2, seq(
+      '"""',
+      repeat(choice(
+        /[^"]/,
+        /"[^"]/,
+        /""[^"]/,
+      )),
+      '"""',
+    ))),
+
+    // single-line string with escapes limited to spec: \" \\ \n \t
+    string: $ => token(prec(1, seq(
       '"',
       repeat(choice(
-        token.immediate(/[^"\\]+/),
-        $.escape_sequence,
+        /[^"\\\n]/,
+        /\\["\\nt]/,
       )),
       '"',
-    ),
-
-    escape_sequence: $ => token.immediate(/\\./),
+    ))),
 
     // float must be tried before integer to avoid partial matches.
     float: $ => token(prec(1, /-?\d+\.\d+/)),
@@ -81,6 +138,8 @@ module.exports = grammar({
     integer: $ => /-?\d+/,
 
     boolean: $ => choice('true', 'false'),
+
+    null: $ => 'null',
 
     identifier: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
 
