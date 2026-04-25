@@ -110,7 +110,7 @@ Zed docs for extension scaffolding.
 
 Highlight captures are in
 [tools/tree-sitter-skg/queries/highlights.scm](../tools/tree-sitter-skg/queries/highlights.scm).
-They use standard capture names — any editor with sensible defaults for
+They use standard capture names - any editor with sensible defaults for
 `@string`, `@number`, `@keyword.import`, `@variable.member`, etc. will
 pick up colors without extra configuration.
 

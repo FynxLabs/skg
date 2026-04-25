@@ -55,7 +55,7 @@ scoped).
 
 ## Scope names
 
-Standard TextMate scopes — themes pick them up automatically:
+Standard TextMate scopes - themes pick them up automatically:
 
 - `keyword.control.import.skg`
 - `entity.name.section.skg` (block and block-array names)
